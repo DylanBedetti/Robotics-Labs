@@ -1,0 +1,3 @@
+gccsim hello.c -o hello
+
+./hello.exe
