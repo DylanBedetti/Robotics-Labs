@@ -158,7 +158,7 @@ void lawnmower(){
 // USE VWGETPOSITION ALONG WITH PHI CONTROL INSTEAD OF BANGBANG CONTROL FOR DISTANACE
 int main() {
 
-    // SIMSetRobot(0,100,100,0,0);
+    SIMSetRobot(0,1000,1000,1,0);
     // SIMGetObject(1,1000,1000,0,0);
     straight();
     rotate_right();
