@@ -7,7 +7,7 @@ All robotics labs for GENG5508
 - [ ] Learn how to use pointers properly 
 - [ ] How da fuck do you get the submarine environment 
 
-# How to run
+### How to run
 ```
 gccsim hello.c -o hello
 ./hello.exe

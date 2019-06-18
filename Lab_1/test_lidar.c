@@ -46,6 +46,6 @@ int main() {
     // SIMSetRobot(0,1000,1800,1,90); // Start along edge
     // VWStraight(50, 100);
     // VWWait();
-    LIDARSet(360, 0, 8);
+    LIDARSet(180, 0, 8);
     lidar();
 }

@@ -65,32 +65,31 @@ void find_corner(int l, int k){
     front = PSDGet(1);
     right = PSDGet(3);
     printf("Moving towards corner\n");
-    if(k == 1){
-        while(front > limit){
-            // as the robot gets further our the lidar will hit the sides!!!
-            LIDARGet(distance);
-            b = distance[0];
-            f = distance[2];
-            if(f > b - error){
-                MOTORDrive(1, speed - push);
-                MOTORDrive(2, speed + push);
-                printf("\rTurning left, Sensor is: %f", left);
-                fflush(stdout);
-            }
-            else if(f < b + error){
-                MOTORDrive(1, speed + push);
-                MOTORDrive(2, speed - push);
-                printf("\rTurning right, Sensor is: %f", left);
-                fflush(stdout);
-            }
-            else{
-                MOTORDrive(1, speed);
-                MOTORDrive(2, speed);
-                printf("\rTurning Straight, Sensor is: %f", left);
-                fflush(stdout);
-            }
-            left = PSDGet(2);
+    
+    while(front > limit){
+        // as the robot gets further our the lidar will hit the sides!!!
+        LIDARGet(distance);
+        b = distance[0];
+        f = distance[2];
+        if(f > b - error){
+            MOTORDrive(1, speed - push);
+            MOTORDrive(2, speed + push);
+            printf("\rTurning left, Sensor is: %f", left);
+            fflush(stdout);
         }
+        else if(f < b + error){
+            MOTORDrive(1, speed + push);
+            MOTORDrive(2, speed - push);
+            printf("\rTurning right, Sensor is: %f", left);
+            fflush(stdout);
+        }
+        else{
+            MOTORDrive(1, speed);
+            MOTORDrive(2, speed);
+            printf("\rTurning Straight, Sensor is: %f", left);
+            fflush(stdout);
+        }
+        left = PSDGet(2);
     }
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
