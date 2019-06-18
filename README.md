@@ -6,3 +6,9 @@ All robotics labs for GENG5508
 - [x] figure out how to SIMSetRobot()
 - [ ] Learn how to use pointers properly 
 - [ ] How da fuck do you get the submarine environment 
+
+# How to run
+'''
+gccsim hello.c -o hello
+./hello.exe
+'''

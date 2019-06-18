@@ -2,15 +2,10 @@
 #include "eyebot.h"
 #include <time.h>
 
-float left, front, right;
-int distance[8];
+float left, front, right, error;
 int limit = 250;
 int left_prev, x, y, phi;
 int total_dist = 1949;
-int error = 2;
-int push = 2;
-int speed = 30;
-int f, b;
 
 
 
@@ -67,29 +62,54 @@ void find_corner(int l, int k){
     printf("Moving towards corner\n");
     if(k == 1){
         while(front > limit){
-            // as the robot gets further our the lidar will hit the sides!!!
-            LIDARGet(distance);
-            b = distance[0];
-            f = distance[2];
-            if(f > b - error){
-                MOTORDrive(1, speed - push);
-                MOTORDrive(2, speed + push);
-                printf("\rTurning left, Sensor is: %f", left);
+            // MOTORDrive(1, 10);
+            // MOTORDrive(2, 10);
+            usleep(100);
+            error = 0.1*(left - l);
+            if(left < l){
+                MOTORDrive(1, 30 + error);
+                MOTORDrive(2, 30 - error);
+                usleep(100);
+                printf("\rTurning Right, Sensor is: %f, error is: %f", left, error);
                 fflush(stdout);
+
             }
-            else if(f < b + error){
-                MOTORDrive(1, speed + push);
-                MOTORDrive(2, speed - push);
-                printf("\rTurning right, Sensor is: %f", left);
-                fflush(stdout);
-            }
-            else{
-                MOTORDrive(1, speed);
-                MOTORDrive(2, speed);
-                printf("\rTurning Straight, Sensor is: %f", left);
+            if(left > l){
+                MOTORDrive(1, 30 - error);
+                MOTORDrive(2, 30 + error);
+                usleep(100);
+                printf("\rTurning Left: Sensor is: %f, error is: %f", left, error);
                 fflush(stdout);
             }
             left = PSDGet(2);
+            front = PSDGet(1);
+            right = PSDGet(3);
+        }
+    }
+    if(k == 2){
+        while(front > limit){
+            // MOTORDrive(1, 10);
+            // MOTORDrive(2, 10);
+            usleep(100);
+
+            if(right < l){
+                MOTORDrive(2, 32);
+                MOTORDrive(1, 28);
+                usleep(100);
+                printf("\rTurning Right, Sensor is: %f", right);
+                fflush(stdout);
+
+            }
+            if(right > l){
+                MOTORDrive(2, 28);
+                MOTORDrive(1, 32);
+                usleep(100);
+                printf("\rTurning Left: Sensor is: %f", right);
+                fflush(stdout);
+            }
+            left = PSDGet(2);
+            front = PSDGet(1);
+            right = PSDGet(3);
         }
     }
     MOTORDrive(1, 0);
@@ -142,7 +162,6 @@ void lawnmower(){
 int main() {
 
     SIMSetRobot(0,1000,1500,1,0);
-    LIDARSet(360, 0, 8);
     // SIMGetObject(1,1000,1000,0,0);
     straight();
     rotate_right();
