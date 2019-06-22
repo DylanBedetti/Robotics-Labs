@@ -7,15 +7,15 @@
 
 #define pi acos(-1.0)
 
-int x; int y; int phi;
+int x; int y; int phi = 0;
 float x_prev = 0; float y_prev = 0;
 float sum = 0;
-int steps = 10;
+int steps = 5;
 
 float phi_error;
 float phi_to_point;
-int speed = 2;
-float push = 0.1;
+int speed = 0;
+float push = 0.05;
 float distance = 100;
 
 float hermite[4][4] = {
@@ -26,7 +26,7 @@ float hermite[4][4] = {
 };
 float pos[4][2] = {
     {0, 0}, // P1 -> Start Point (x,y)
-    {100, 100}, // P2 -> End Point (x,y)
+    {300, 300}, // P2 -> End Point (x,y)
     {10, 0}, // T1 -> Start Tangent (x,y)
     {10, 0} // T2 -> End Tangent (x,y)
 } ;
@@ -63,25 +63,32 @@ void pls_move(int x_p, int y_p){
         phi_error = phi_to_point - phi;
         distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
 
-        printf("phi_to_point: %f \t", phi_to_point);
+        printf("phi_point: %f \t", phi_to_point);
         printf("phi_error: %f\t", phi_error);
-        printf("distance: %f \t", distance);
-        printf("x: %d, y: %d\n", x, y);
+        printf("phi: %d \t", phi);
+        printf("dist: %f \t", distance);
+        printf("x: %d, y: %d\t", x, y);
 
 
-
-        if(phi_error > 0){
+        if(phi_error > 3){
             // turn left
             MOTORDrive(1, speed - phi_error*push);
             MOTORDrive(2, speed + phi_error*push);
+            usleep(1000);
+            printf("Left \n");
         }
-        else if(phi_error < 0){
-            // turn left
+        else if(phi_error < -3){
+            // turn right
             MOTORDrive(1, speed + phi_error*push);
             MOTORDrive(2, speed - phi_error*push);
+            usleep(1000);
+            printf("Right \n");
         }
         else{
-            VWStraight(10, 30);
+            MOTORDrive(1, speed + 3);
+            MOTORDrive(2, speed + 3);
+            usleep(1000);
+            printf("straight \n");
         }
     }
     MOTORDrive(1, 0);
@@ -123,11 +130,11 @@ void spline(){
             printf("vector %f\n", vector[i][1]);
         }
 
-        // move(vector[1][1] - x_prev, vector[2][1]- y_prev);
-        // x_prev = vector[1][1];
-        // y_prev = vector[2][1];
+        // move(vector[0][1] - x_prev, vector[1][1]- y_prev);
+        // x_prev = vector[0][1];
+        // y_prev = vector[1][1];
 
-        pls_move(vector[1][1], vector[2][1]);
+        pls_move(vector[0][1], vector[1][1]);
 
 
     }

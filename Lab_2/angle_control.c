@@ -23,6 +23,7 @@ void angle_control(int x_p, int y_p){
 
         phi_error = phi_to_point - phi;
         printf("phi_error: %f\t", phi_error);
+        printf("phi: %d\t", phi);
 
         distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
         printf("distance: %f \n", distance);
