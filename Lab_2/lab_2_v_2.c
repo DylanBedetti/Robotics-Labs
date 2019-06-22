@@ -4,8 +4,20 @@
 #include <math.h>
 
 // https://www.cubic.org/docs/hermite.htm
+
+#define pi acos(-1.0)
+
+int x; int y; int phi;
+float x_prev = 0; float y_prev = 0;
 float sum = 0;
-int steps = 20;
+int steps = 10;
+
+float phi_error;
+float phi_to_point;
+int speed = 2;
+float push = 0.1;
+float distance = 100;
+
 float hermite[4][4] = {
     {2, -2, 1, 1},
     {-3, 3, -2, -1},
@@ -36,7 +48,47 @@ float vector[2][1] = {
     {0}
 };
 
-void test_spline(){
+
+void move(float x, float y){
+    // function to move to the desired vector locations
+    VWDrive(x, y, speed);
+    VWWait();
+}
+
+void pls_move(int x_p, int y_p){
+    while(distance > 3){
+        VWGetPosition(&x, &y, &phi);
+
+        phi_to_point = atan2(y_p - y,x_p - x)*180/pi;
+        phi_error = phi_to_point - phi;
+        distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
+
+        printf("phi_to_point: %f \t", phi_to_point);
+        printf("phi_error: %f\t", phi_error);
+        printf("distance: %f \t", distance);
+        printf("x: %d, y: %d\n", x, y);
+
+
+
+        if(phi_error > 0){
+            // turn left
+            MOTORDrive(1, speed - phi_error*push);
+            MOTORDrive(2, speed + phi_error*push);
+        }
+        else if(phi_error < 0){
+            // turn left
+            MOTORDrive(1, speed + phi_error*push);
+            MOTORDrive(2, speed - phi_error*push);
+        }
+        else{
+            VWStraight(10, 30);
+        }
+    }
+    MOTORDrive(1, 0);
+    MOTORDrive(2, 0);
+    distance = 100;
+}
+void spline(){
     for(t=0;t< steps; t++){
         printf("element %f\n", t);
 
@@ -70,12 +122,25 @@ void test_spline(){
         for(int i = 0; i < 2; i++){
             printf("vector %f\n", vector[i][1]);
         }
+
+        // move(vector[1][1] - x_prev, vector[2][1]- y_prev);
+        // x_prev = vector[1][1];
+        // y_prev = vector[2][1];
+
+        pls_move(vector[1][1], vector[2][1]);
+
+
     }
 }
 
 
+
+
 int main() {
-    // SIMSetRobot(0,1000,1000,1,0);
-    test_spline();
+    SIMSetRobot(0,1000,1000,1,0);
+    VWSetPosition(x, y, phi);
+    VWGetPosition(&x, &y, &phi);
+    printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
+    spline();
     return 0;
 }
