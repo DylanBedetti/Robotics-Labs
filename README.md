@@ -15,4 +15,4 @@ gccsim hello.c -o hello
 ```
 
 ## SubSim (need to download)
--> http://robotics.ee.uwa.edu.au/auv/subsim.html
+> http://robotics.ee.uwa.edu.au/auv/subsim.html

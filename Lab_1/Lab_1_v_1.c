@@ -159,7 +159,7 @@ void lawnmower(){
 // USE VWGETPOSITION ALONG WITH PHI CONTROL INSTEAD OF BANGBANG CONTROL FOR DISTANACE
 int main() {
     // Set robots position
-    SIMSetRobot(0,1000,1500,1,10);
+    SIMSetRobot(0,1000,1500,1,0); //vary last element to change degrees of starting point
     // Run straight to closest wall
     straight();
     // rotate to be parallel to wall
