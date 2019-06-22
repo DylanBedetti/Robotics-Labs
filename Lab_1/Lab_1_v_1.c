@@ -2,149 +2,168 @@
 #include "eyebot.h"
 #include <time.h>
 
-float left, front, right;
-int distance[8];
-int limit = 250;
-int left_prev, x, y, phi;
-int total_dist = 1949;
-int error = 2;
-int push = 2;
-int speed = 30;
-int f, b;
+int x, y, phi;
+
+int limit = 250; int turn_speed = 50;
+int turn_length = 200; int turn_angle = 87;
+float prev;
+float distances[3] = {0,0,0};
+const int speed = 30; 
+const int push = 3;
+int j;
+
+// need to use train setting?
+// need to find end point
 
 
+void update(){
+    // front,left, right
+    for(int i = 0; i < 3; i++){
+        distances[i] = PSDGet(i+1);
+    }
+}
 
 void straight(){
     // function that will go straight and check sensors until they are below limit
-    left = PSDGet(2);
-    front = PSDGet(1);
-    right = PSDGet(3);
+    update();
 
-    while(left > limit && front > limit && right > limit){
+    while(distances[0] > limit && distances[1] > limit && distances[2] > limit){
         VWStraight(50, 100);
-        printf("\rleft: %f, front: %f, right: %f", left, front, right);
+        printf("\rleft: %f, front: %f, right: %f", distances[0], distances[1], distances[2] );
         fflush(stdout); // flushing stdout as it is buffered
 
-        left = PSDGet(2);
-        front = PSDGet(1);
-        right = PSDGet(3);
+        update();
     }
 }
 
 void rotate_right(){
     // function that will make the robot rotate right until a minimum distance on the left sensor is found
 
-    while(left > 500){
+    while(distances[1] > 500){
         MOTORDrive(1, 10);
         MOTORDrive(2, -10);
         usleep(1000);
-        left = PSDGet(2);
-        printf("\rRotating, left sensor: %f", left);
+
+        update();
+        printf("\rRotating, left sensor: %f", distances[1]);
         fflush(stdout);
     }
-    left = PSDGet(2);
-    left_prev = left;
-    while(left_prev >= left){
-        left_prev = left;
-        left = PSDGet(2);
+
+    update();
+    prev = distances[1];
+    while(prev >= distances[1]){
+        prev = distances[1];
+        update();
+
         MOTORDrive(1, 10);
         MOTORDrive(2, -10);
         usleep(1000);
-        printf("\rRotating, left sensor: %f", left);
+        printf("\rRotating, left sensor: %f", distances[1]);
         fflush(stdout);
     }
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
-
 }
 
-void find_corner(int l, int k){
-    // A function to find the right most corner by travelling next to the wall with a bang-bang controller
-    // k is 2 or 3
-    left = PSDGet(2);
-    front = PSDGet(1);
-    right = PSDGet(3);
-    printf("Moving towards corner\n");
-    
-    while(front > limit){
-        // as the robot gets further our the lidar will hit the sides!!!
-        LIDARGet(distance);
-        b = distance[0];
-        f = distance[2];
-        if(f > b - error){
-            MOTORDrive(1, speed - push);
-            MOTORDrive(2, speed + push);
-            printf("\rTurning left, Sensor is: %f", left);
+void run_along_wall(int k){
+    // Smooth following of great wall
+    // for LEFT facing: k = 1
+    // for RIGHT facing: k = 2
+
+    // j is used to reverse the polarity of the turn when using the right sensor instead of the left
+    if(k == 2){
+        j = -1;
+    }
+    else{
+        j = 1;
+    }
+
+    while(distances[0] > limit){
+        update();
+
+        if(distances[k] > prev){
+            MOTORDrive(1, speed - j*push);
+            MOTORDrive(2, speed + j*push);
+            printf("\rTurning left, Sensor is: %f  ", distances[k]);
             fflush(stdout);
         }
-        else if(f < b + error){
-            MOTORDrive(1, speed + push);
-            MOTORDrive(2, speed - push);
-            printf("\rTurning right, Sensor is: %f", left);
+        else if(distances[k] < prev){
+            MOTORDrive(1, speed + j*push);
+            MOTORDrive(2, speed - j*push);
+            printf("\rTurning right, Sensor is: %f  ", distances[k]);
             fflush(stdout);
         }
         else{
             MOTORDrive(1, speed);
             MOTORDrive(2, speed);
-            printf("\rTurning Straight, Sensor is: %f", left);
+            printf("\rgoing straight, Sensor is: %f  ", distances[k]);
             fflush(stdout);
         }
-        left = PSDGet(2);
+        prev = distances[k];
     }
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
 }
 
 void edge(int k){
+    // 180 degree turn at edges of great wall
+    // for LEFT turn: k = 1
+    // for RIGHT turn: k = 2
     if(k == 1){
-        VWTurn(-90, 20);
+        VWTurn(-turn_angle, turn_speed);
         VWWait();
-        VWStraight(100, 50);
+        VWStraight(100, turn_length);
         VWWait();
-        VWTurn(-90, 20);
+        VWTurn(-turn_angle, turn_speed);
         VWWait();
     }
     if(k == 2){
-        VWTurn(90, 20);
+        VWTurn(turn_angle, turn_speed);
         VWWait();
-        VWStraight(100, 50);
+        VWStraight(100, turn_length);
         VWWait();
-        VWTurn(90, 20);
+        VWTurn(turn_angle, turn_speed);
         VWWait();
 
     }
 }
 void lawnmower(){
-    VWSetPosition(x,y,phi); 
-    VWTurn(-90, 200);
-    VWWait();
-    VWGetPosition(&x, &y, &phi);
-    printf("\nx: %d, y: %d, phi: %d\n", x,y,phi);
-    find_corner(limit,1);
-    VWGetPosition(&x, &y, &phi);
-    printf("\nx: %d, y: %d, phi: %d\n", x,y,phi);
-    edge(1);
-    find_corner(450,2);
-    edge(2);
-    find_corner(650,1);
-    edge(1);
-    find_corner(850,2);
-    edge(2);
-    find_corner(1050,1);
-    edge(1);
-    find_corner(1250,2);
-    edge(2);
+    for(int i = 0; i < 10; i++){
+        printf("\n RUN %d \n",i);
+        if(i % 2 == 0){
+            printf("\nWE BE TURNING RIGHT\n");
+            edge(1);
+            update();
+            run_along_wall(2);
+        }
+        if(i % 2 == 1){
+            printf("\nWE BE TURNING LEFT\n");
+            edge(2);
+            update();
+            run_along_wall(1);
+        }
+    }
 
 }
 
 // USE VWGETPOSITION ALONG WITH PHI CONTROL INSTEAD OF BANGBANG CONTROL FOR DISTANACE
 int main() {
-
-    SIMSetRobot(0,1000,1500,1,0);
-    LIDARSet(360, 0, 8);
-    // SIMGetObject(1,1000,1000,0,0);
+    // Set robots position
+    SIMSetRobot(0,1000,1500,1,10);
+    // Run straight to closest wall
     straight();
+    // Set position
+    VWSetPosition(x, y, phi);
+    VWGetPosition(&x, &y, &phi);
+    printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
+    // rotate to be parallel to wall
     rotate_right();
-    find_corner(limit, 1);
+    VWGetPosition(&x, &y, &phi);
+    printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
+    // run straight along wall 
+    run_along_wall(1);
+    // start lawnmower pattern
     lawnmower();
+
+    return 0;
 }

@@ -6,6 +6,7 @@ All robotics labs for GENG5508
 - [x] figure out how to SIMSetRobot()
 - [ ] Learn how to use pointers properly 
 - [ ] How da fuck do you get the submarine environment 
+- [ ] what da fuk is te trail setting
 
 ### How to run
 ```
