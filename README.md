@@ -12,3 +12,6 @@ All robotics labs for GENG5508
 gccsim hello.c -o hello
 ./hello.exe
 ```
+
+## SubSim (need to download)
+-> http://robotics.ee.uwa.edu.au/auv/subsim.html
