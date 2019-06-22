@@ -5,6 +5,10 @@
 
 // https://www.cubic.org/docs/hermite.htm
 
+// TO DO
+// get this pls_move function working
+// I should try angle control for a variety of inputs, see if it works for all
+
 #define pi acos(-1.0)
 
 int x; int y; int phi = 0;
@@ -115,7 +119,7 @@ void spline(){
         output[r][1] = sum; 
         }
 
-        // multiplying the output of above by the stand and end 
+        // multiplying the output of above by the start and end 
         // parameters for the hermite curve
         for(int k = 0; k < 2; k++){
             sum = 0;
@@ -139,8 +143,6 @@ void spline(){
 
     }
 }
-
-
 
 
 int main() {
