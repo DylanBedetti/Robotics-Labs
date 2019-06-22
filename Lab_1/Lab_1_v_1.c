@@ -5,7 +5,7 @@
 int x, y, phi;
 
 int limit = 250; int turn_speed = 50;
-int turn_length = 200; int turn_angle = 87;
+int turn_length = 100; int turn_angle = 87;
 float prev;
 float distances[3] = {0,0,0};
 const int speed = 30; 
@@ -14,6 +14,7 @@ int j;
 
 // need to use train setting?
 // need to find end point
+// Could use an error for run along wall function to get it running smoother
 
 
 void update(){
@@ -112,7 +113,7 @@ void edge(int k){
     if(k == 1){
         VWTurn(-turn_angle, turn_speed);
         VWWait();
-        VWStraight(100, turn_length);
+        VWStraight(turn_length, 100);
         VWWait();
         VWTurn(-turn_angle, turn_speed);
         VWWait();
@@ -120,7 +121,7 @@ void edge(int k){
     if(k == 2){
         VWTurn(turn_angle, turn_speed);
         VWWait();
-        VWStraight(100, turn_length);
+        VWStraight(turn_length, 100);
         VWWait();
         VWTurn(turn_angle, turn_speed);
         VWWait();
@@ -128,18 +129,27 @@ void edge(int k){
     }
 }
 void lawnmower(){
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i < 100; i++){
         printf("\n RUN %d \n",i);
         if(i % 2 == 0){
             printf("\nWE BE TURNING RIGHT\n");
             edge(1);
             update();
+            if((distances[1] < 300 || distances[2] < 300) && (i > 3)){
+                printf("\nFINISHED BOIIIII");
+                return;
+            }
+
             run_along_wall(2);
         }
         if(i % 2 == 1){
             printf("\nWE BE TURNING LEFT\n");
             edge(2);
             update();
+            if((distances[1]< 300 || distances[2] < 300) && (i > 3)){
+                printf("\nFINISHED BOIIIII");
+                return;
+            }
             run_along_wall(1);
         }
     }
