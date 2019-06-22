@@ -162,14 +162,8 @@ int main() {
     SIMSetRobot(0,1000,1500,1,10);
     // Run straight to closest wall
     straight();
-    // Set position
-    VWSetPosition(x, y, phi);
-    VWGetPosition(&x, &y, &phi);
-    printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
     // rotate to be parallel to wall
     rotate_right();
-    VWGetPosition(&x, &y, &phi);
-    printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
     // run straight along wall 
     run_along_wall(1);
     // start lawnmower pattern
