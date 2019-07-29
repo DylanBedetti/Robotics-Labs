@@ -47,15 +47,18 @@ void angle_control(int x_p, int y_p){
     MOTORDrive(2, 0);
 
 }
-
-
+void Drive(){
+    VWDrive(400,100, 50);
+    VWWait();
+}
 
 
 int main() {
     SIMSetRobot(0,1000,1000,1,0);
     VWSetPosition(x, y, phi);
     VWGetPosition(&x, &y, &phi);
-
-    angle_control(300, 300); // x , y
+    printf("%f",fmin(10,8));
+    // Drive();
+    // angle_control(300, 300); // x , y
     return 0;
 }

@@ -8,9 +8,9 @@
 /*
            +x
            |
-           |
--y ---------------- +y
-           |
+           |            + <--
++y ---------------- -y       |
+           |               --
            |
            -x
  */
@@ -24,13 +24,14 @@
 int x; int y; int phi = 0;
 float x_prev = 0; float y_prev = 0;
 float sum = 0;
-int steps = 10;
+int steps = 5;
 
 float phi_error;
 float phi_to_point;
-int speed = 0;
-float push = 0.05;
+int speed = 5;
+float push = 1;
 float distance = 100;
+float turn_rate;
 
 float hermite[4][4] = {
     {2, -2, 1, 1},
@@ -40,9 +41,9 @@ float hermite[4][4] = {
 };
 float pos[4][2] = {
     {0, 0}, // P1 -> Start Point (x,y)
-    {300, 100}, // P2 -> End Point (x,y)
-    {10, 0}, // T1 -> Start Tangent (x,y)
-    {10, 0} // T2 -> End Tangent (x,y)
+    {500, 500}, // P2 -> End Point (x,y)
+    {40, 0}, // T1 -> Start Tangent (x,y)
+    {0, 200} // T2 -> End Tangent (x,y)
 } ;
 float t = 0;
 float s[4][1] = {
@@ -63,11 +64,7 @@ float vector[2][1] = {
 };
 
 
-void move(float x, float y){
-    // function to move to the desired vector locations
-    VWDrive(x, y, speed);
-    VWWait();
-}
+
 
 void pls_move(int x_p, int y_p){
     while(distance > 3){
@@ -111,17 +108,47 @@ void pls_move(int x_p, int y_p){
 }
 
 void follow_curve(int x_p, int y_p){
+    printf("\n\n ------ FOLLOWING CURVE ------- \n\n");
     VWGetPosition(&x, &y, &phi);
-    phi_to_point = atan2(y_p - y,x_p - x)*180/pi;
-
-    VWTurn(phi_to_point- phi, 30);
-    VWWait();
-
+    phi_error = atan2(y_p - y,x_p - x)*180/pi - phi;
     distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
-    VWStraight(distance, 50);
-    VWWait();
 
-    printf("\nx: %d, y: %d, phi: %d, phi to point: %f, distance: %f\n", x, y, phi, phi_to_point, distance);
+    // VWTurn(phi_error, 20);
+    // VWWait();
+
+    // VWStraight(distance, 100);
+    // VWWait();
+
+    while (distance > 2){
+        // need to consider when phi error is negative
+        turn_rate = fmin(abs(phi_error)*push*fmax(-distance + 15, 1), 10);
+
+        if(phi_error > 1){
+            // turn left
+            MOTORDrive(1, speed - turn_rate);
+            MOTORDrive(2, speed + turn_rate);
+        }
+        else if(phi_error < -1){
+            // turn right
+            MOTORDrive(1, speed + turn_rate);
+            MOTORDrive(2, speed - turn_rate);
+        }
+        else{
+            VWStraight(10, 30);
+        }
+
+        VWGetPosition(&x, &y, &phi);
+        distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
+        phi_error = atan2(y_p - y,x_p - x)*180/pi - phi;
+
+        printf("\r distance: %f, phi_error: %f, turn rate: %f, x: %d, y: %d", distance, phi_error,turn_rate,x, y);
+        fflush(stdout);
+    }
+    MOTORDrive(1, 0);
+    MOTORDrive(2, 0);
+
+    VWGetPosition(&x, &y, &phi);
+    printf("\n\nx: %d, y: %d, phi: %d, phi error: %f, distance: %f\n\n", x, y, phi, phi_error , distance);
 }
 
 void spline(){
