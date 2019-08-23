@@ -2,23 +2,22 @@
 #include "eyebot.h"
 #include <time.h>
 
-int x, y, phi;
-
+int x, y, phi; // can be used to record robot position and angle
 int limit = 250; int turn_speed = 50;
-int turn_length = 100; int turn_angle = 87;
+int turn_length = 100; int turn_angle = 85;
 float prev;
 float distances[3] = {0,0,0};
 const int speed = 30; 
 const int push = 3;
 int j;
 
-// need to use train setting?
-// need to find end point
-// Could use an error for run along wall function to get it running smoother
+// TO DO:
+// current error:
+// - merges back a line when going from right side to left side
 
 
 void update(){
-    // front,left, right
+    // front, left, right
     for(int i = 0; i < 3; i++){
         distances[i] = PSDGet(i+1);
     }
@@ -41,23 +40,29 @@ void rotate_right(){
     // function that will make the robot rotate right until a minimum distance on the left sensor is found
 
     while(distances[1] > 500){
+        // function turn robot clockwise until left sensor is less than 500!
         MOTORDrive(1, 10);
         MOTORDrive(2, -10);
+        // making the robot turn right
         usleep(1000);
 
         update();
+        // updating sensors
         printf("\rRotating, left sensor: %f", distances[1]);
         fflush(stdout);
     }
 
     update();
-    prev = distances[1];
+    prev = distances[1]; // left sensor
     while(prev >= distances[1]){
+        // while loop will continue until prev value is less than left distance sensor, meaning the left distance sensor is greater
+        // than the prev value of it. 
         prev = distances[1];
         update();
 
         MOTORDrive(1, 10);
         MOTORDrive(2, -10);
+        // rotate right
         usleep(1000);
         printf("\rRotating, left sensor: %f", distances[1]);
         fflush(stdout);
@@ -66,23 +71,32 @@ void rotate_right(){
     MOTORDrive(2, 0);
 }
 
-void run_along_wall(int k){
+void run_along_wall(){
     // Smooth following of great wall
     // for LEFT facing: k = 1
     // for RIGHT facing: k = 2
 
     // j is used to reverse the polarity of the turn when using the right sensor instead of the left
-    if(k == 2){
+    // if(k == 2){
+    //     j = -1;
+    // }
+    // else{
+    //     j = 1;
+    // }
+    int k;
+    update();
+    if (distances[1] < distances[2]){ // if left sensor is less than right sensor
+        k = 2;
         j = -1;
-    }
-    else{
+    } else {
+        k = 1;
         j = 1;
     }
 
-    while(distances[0] > limit){
+    while(distances[0] > limit){ // checking front sensor is greater than defined distance
         update();
 
-        if(distances[k] > prev){
+        if(distances[k] > prev){ // checking if left or right sensor is greater than previous
             MOTORDrive(1, speed - j*push);
             MOTORDrive(2, speed + j*push);
             printf("\rTurning left, Sensor is: %f  ", distances[k]);
@@ -127,6 +141,8 @@ void edge(int k){
         VWWait();
 
     }
+    VWStraight(150, 100);
+    VWWait();
 }
 void lawnmower(){
     for(int i = 0; i < 100; i++){
@@ -140,7 +156,7 @@ void lawnmower(){
                 return;
             }
 
-            run_along_wall(2);
+            run_along_wall();
         }
         if(i % 2 == 1){
             printf("\nWE BE TURNING LEFT\n");
@@ -150,7 +166,7 @@ void lawnmower(){
                 printf("\nFINISHED BOIIIII");
                 return;
             }
-            run_along_wall(1);
+            run_along_wall();
         }
     }
 
@@ -159,7 +175,7 @@ void lawnmower(){
 // USE VWGETPOSITION ALONG WITH PHI CONTROL INSTEAD OF BANGBANG CONTROL FOR DISTANACE
 int main() {
     // Set robots position
-    SIMSetRobot(0,1000,1500,1,0); //vary last element to change degrees of starting point
+    SIMSetRobot(0,1000,1500,1,-50); //vary last element to change degrees of starting point
     // Run straight to closest wall
     straight();
     // rotate to be parallel to wall
