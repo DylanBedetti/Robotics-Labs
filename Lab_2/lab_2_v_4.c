@@ -17,6 +17,7 @@
            -x
  */
 
+// I think something is fucking up with the phi control 
 
 
 int x; int y; int phi = 0; // VWGetPosition variables
@@ -24,7 +25,7 @@ float x_val = 0; float y_val = 0; // recording spline x and y coordinates
 float sum = 0; // used for spline calculation
 int steps = 15; // number of discrete steps of spline!
 float phi_error; float distance; 
-int speed = 50; // base speed
+int speed = 80; // base speed
 
 // txt file stuff
 int points[20][2];
@@ -69,9 +70,17 @@ void follow_points(int x_p, int y_p){
     phi_error = atan2(y_p - y,x_p - x)*180/pi - phi;
     distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
 
+    if (phi_error > 180){
+        phi_error = phi_error - 360;
+    }
+    if (phi_error < -180){
+        phi_error = 360 + phi_error;
+    }
+
     printf("START: phi error: %f\tdistance: %f\tphi: %d\tx: %d\ty: %d\n", phi_error, distance, phi, x, y);
 
     // using basic curve function as control
+
     VWCurve(distance, phi_error, speed);
     VWWait();
 
