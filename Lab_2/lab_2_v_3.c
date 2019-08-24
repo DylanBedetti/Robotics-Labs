@@ -26,8 +26,8 @@ float x_val = 0; float y_val = 0; // recording spline x and y coordinates
 float sum = 0;
 int steps = 15; // number of discrete steps of spline!
 
-float phi_error; float phi_to_point;
-int speed = 30; float push = 1; float distance = 100;
+float phi_error; float phi_to_point; float distance; 
+int speed = 30; float push = 1; 
 float turn_rate;
 
 float hermite[4][4] = {
@@ -38,9 +38,9 @@ float hermite[4][4] = {
 };
 float pos[4][2] = {
     {0, 0}, // P1 -> Start Point (x,y)
-    {300, 500}, // P2 -> End Point (x,y)
-    {40, 0}, // T1 -> Start Tangent (x,y)
-    {0, 200} // T2 -> End Tangent (x,y)
+    {400, 500}, // P2 -> End Point (x,y)
+    {0, 0}, // T1 -> Start Tangent (x,y)
+    {-100, 0} // T2 -> End Tangent (x,y)
 } ;
 float t = 0;
 float s[4][1] = {
@@ -103,9 +103,24 @@ void follow_curve(int x_p, int y_p){
     printf("\n\nx: %d, y: %d, phi: %d, phi error: %f, distance: %f\n\n", x, y, phi, phi_error , distance);
 }
 
+void follow_points(int x_p, int y_p){
+    // control function for each point on spline 
+    printf("\n------- FOLLOWING POINTS ----------\n");
+
+    VWGetPosition(&x, &y, &phi);
+    phi_error = atan2(y_p - y,x_p - x)*180/pi - phi;
+    distance = sqrt((y_p - y)*(y_p - y) + (x_p - x)*(x_p - x) );
+
+    printf("START: phi error: %f\tdistance: %f\tphi: %d\tx: %d\ty: %d\n", phi_error, distance, phi, x, y);
+
+    VWCurve(distance, phi_error, speed);
+    VWWait();
+
+    VWGetPosition(&x, &y, &phi);
+    printf("END: phi error: %f\tdistance: %f\tphi: %d\tx: %d\ty: %d\n", phi_error, distance, phi, x, y);
+}
 void spline(){
     for(t=0;t <= steps; t++){
-        printf("element %f\n", t);
         
         // determining the s-vector (interpolation-point)
         for(int k = 0; k < 4; k++){
@@ -134,9 +149,11 @@ void spline(){
         }
 
         // printing out the discrete vectors 
+        printf("\n\nNEW SPLINE POINTS (x, y) element %.1f\n", t);
         for(int i = 0; i < 2; i++){
-            printf("vector %i:  %f\n",i, vector[i][1]);
+            printf("%f\t",i, vector[i][1]);
         }
+        printf("\n");
 
         x_val = vector[0][1];
         y_val = vector[1][1];
