@@ -21,16 +21,13 @@
 
 #define pi acos(-1.0)
 
-int x; int y; int phi = 0;
-float x_prev = 0; float y_prev = 0;
+int x; int y; int phi = 0; // VWGetPosition variables
+float x_val = 0; float y_val = 0; // recording spline x and y coordinates
 float sum = 0;
-int steps = 5;
+int steps = 15; // number of discrete steps of spline!
 
-float phi_error;
-float phi_to_point;
-int speed = 30;
-float push = 1;
-float distance = 100;
+float phi_error; float phi_to_point;
+int speed = 30; float push = 1; float distance = 100;
 float turn_rate;
 
 float hermite[4][4] = {
@@ -41,7 +38,7 @@ float hermite[4][4] = {
 };
 float pos[4][2] = {
     {0, 0}, // P1 -> Start Point (x,y)
-    {500, 500}, // P2 -> End Point (x,y)
+    {300, 500}, // P2 -> End Point (x,y)
     {40, 0}, // T1 -> Start Tangent (x,y)
     {0, 200} // T2 -> End Tangent (x,y)
 } ;
@@ -107,7 +104,7 @@ void follow_curve(int x_p, int y_p){
 }
 
 void spline(){
-    for(t=0;t< steps; t++){
+    for(t=0;t <= steps; t++){
         printf("element %f\n", t);
         
         // determining the s-vector (interpolation-point)
@@ -141,25 +138,28 @@ void spline(){
             printf("vector %i:  %f\n",i, vector[i][1]);
         }
 
-        // move(vector[0][1] - x_prev, vector[1][1]- y_prev);
-        x_prev = vector[0][1];
-        y_prev = vector[1][1];
+        x_val = vector[0][1];
+        y_val = vector[1][1];
 
-        // pls_move(vector[0][1], vector[1][1]);
-        // VWDrive(x_prev, y_prev, 50);
-        // VWWait();
-
-        follow_curve(x_prev, y_prev);
+        // follow_curve(x_val, y_val);
+        follow_points(x_val, y_val);
     }
 }
 
 
 
 int main() {
-    SIMSetRobot(0,1000,1000,1,0);
+    // set robot position
+    SIMSetRobot(0,1000,1000,1,0); // robot id, x pos, y pos, z pos, angle
+
+    // Setting position and updating position parameters x, y and phi
     VWSetPosition(x, y, phi);
     VWGetPosition(&x, &y, &phi);
+
+    printf("\n\n STARTING PROGRAM \n\n");
     printf("\nx: %d, y: %d, phi: %d\n", x, y, phi);
+
+
     spline();
     return 0;
 }
