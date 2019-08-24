@@ -18,6 +18,7 @@
  */
 
 // I think something is fucking up with the phi control 
+// should make number of steps dependent on distance to be travelled
 
 
 int x; int y; int phi = 0; // VWGetPosition variables
