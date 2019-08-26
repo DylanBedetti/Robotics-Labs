@@ -16,11 +16,11 @@
 
 const int speed = 100;
 const int wall_dist = 1000;
-const int cruising_speed = 80;
+const int cruising_speed = 90;
 const int push = 10;
 int dist[6] = {0,0,0,0,0,0}; 
 int side;
-int j;
+int j = 1;
 int x; int y; int phi = 0; 
 
 void update(){
@@ -93,23 +93,34 @@ void rotate(){
 }
 
 void follow_wall(){
-    while (dist[0] > 1500){
-        if (dist[side] > dist[side+2]){
-            MOTORDrive(LEFT, cruising_speed + j*push);
-            MOTORDrive(RIGHT,  cruising_speed - j*push);
+    for (int k = 0; k <= 4; k++){
+        while (dist[0] > 1500){
+            if (dist[side] > dist[side+2]){
+                MOTORDrive(LEFT, cruising_speed + j*push);
+                MOTORDrive(RIGHT,  cruising_speed - j*push);
+            }
+            else {
+                MOTORDrive(LEFT, cruising_speed - j*push);
+                MOTORDrive(RIGHT,  cruising_speed + j*push);
+            }
+            update();
+            height_control();
         }
-        else {
-            MOTORDrive(LEFT, cruising_speed - j*push);
-            MOTORDrive(RIGHT,  cruising_speed + j*push);
-        }
+
+        MOTORDrive(LEFT, j*-100);
+        MOTORDrive(RIGHT,  j*100);
+        usleep(1500000);
+
+        MOTORDrive(LEFT, 0);
+        MOTORDrive(RIGHT,  0);
+
+        MOTORDrive(LEFT, 100);
+        MOTORDrive(RIGHT,  100);
+        usleep(2000000);
+
         update();
-        height_control();
     }
-
-    MOTORDrive(LEFT, j*-push);
-    MOTORDrive(RIGHT,  j*push);
-    sleep(3);
-
+    
 }
 
 int main()
