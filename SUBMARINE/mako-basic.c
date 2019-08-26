@@ -1,4 +1,4 @@
-// Mako Basic Movement Demo, M. Finn May 2018
+// Mako Basic Movement Demo, M. Finn May 2018a
 #include "eyebot.h"
 
 // PSD IDs.
