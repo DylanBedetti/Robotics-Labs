@@ -121,6 +121,9 @@ void follow_wall(){
         update();
     }
     
+    MOTORDrive(LEFT, 0);
+    MOTORDrive(RIGHT,  0);
+    
 }
 
 int main()
