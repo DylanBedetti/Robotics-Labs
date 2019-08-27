@@ -36,7 +36,7 @@ void straight_and_turn_right(){
     // robot is now close to the wall
 
     prev_distance = distances[1];
-    while(prev_distance >= distances[1]){ // current distance should be decreasing compared to previous until at right angle with wall
+    while(prev_distance >= distances[1] || distances[1] > 500){ // current distance should be decreasing compared to previous until at right angle with wall
         // rotate right
         MOTORDrive(1, 10);
         MOTORDrive(2, -10);

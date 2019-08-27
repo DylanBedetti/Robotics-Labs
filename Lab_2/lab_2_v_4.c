@@ -39,10 +39,10 @@ float hermite[4][4] = {
     {1, 0, 0, 0}
 };
 float pos[4][2] = {
-    {0, 0}, // P1 -> Start Point (x,y)
+    {200, 0}, // P1 -> Start Point (x,y)
     {400, 1000}, // P2 -> End Point (x,y)
     {0, 0}, // T1 -> Start Tangent (x,y)
-    {0, 0} // T2 -> End Tangent (x,y)
+    {200, 0} // T2 -> End Tangent (x,y)
 } ;
 float t = 0;
 float s[4][1] = {
