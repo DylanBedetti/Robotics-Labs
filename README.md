@@ -17,5 +17,11 @@ gccsim hello.c -o hello
 ./hello.exe
 ```
 
-## SubSim (need to download)
-> http://robotics.ee.uwa.edu.au/auv/subsim.html
+# Labs
+
+## Lab-1
+- Submitted
+
+## Lab-2 
+- Need to get some nicer turns, maybe don't use arrays for spline update?
+- need to figure out good update rule for moving to new x-y coordinates
