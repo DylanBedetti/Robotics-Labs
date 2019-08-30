@@ -41,8 +41,8 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
         H3 = u3 - 2*u2 + u;
         H4 = u3 - u2;
 
-        spline_x = H1*px + H2*p1x * H3*Dpx + H4*Dp1x;
-        spline_y = H1*py + H2*p1y * H3*Dpy + H4*Dp1y;
+        spline_x = H1*px + H2*p1x + H3*Dpx + H4*Dp1x;
+        spline_y = H1*py + H2*p1y + H3*Dpy + H4*Dp1y;
 
         sum_x += spline_x; sum_y += spline_y;
         
