@@ -87,8 +87,8 @@ int main(){
     // Set position parameters
     VWSetPosition(x_pos, y_pos, phi);
     VWGetPosition(&x_pos, &y_pos, &phi);
-
-    SplineDrive(500,500,30,0);
+    printf("%d", phi);
+    // SplineDrive(600,600,180,0);
 
     return 0;
 }
