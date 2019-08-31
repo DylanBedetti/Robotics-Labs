@@ -18,11 +18,10 @@
            -x
  */
 
-int x_pos; int y_pos; int phi = 0; // VWGetPosition variables
-float steps = 20;
-float rot_factor = 1;
-float lin_factor = 1;
+int x_pos, y_pos, phi = 0; // VWGetPosition variables
+float steps = 20; float rot_factor = 1; float lin_factor = 1;
 int travel_speed = 50;
+int points[20][2]; int i = 0;
 
 void Drive_Control(float x, float y, float u){
     float angle_diff; float rot_new; float dist_diff; float lin_new; float x_acc; float y_acc;
@@ -64,11 +63,13 @@ void Drive_Control(float x, float y, float u){
 }
 
 void SplineDrive(int x, int y, int alpha_end, int alpha_start){
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
     // x units forward, y units left, alpha counter clockwise in degrees
     float len = sqrt(pow(x, 2) + pow(y, 2));
     float Dpx = len*cos(alpha_start); float Dpy = len*sin(alpha_start);
     float Dp1x = len*cos(alpha_end); float Dp1y = len*sin(alpha_end);
-    float px = 0; float py = 0; float p1x = x; float p1y = y;
+    float px = x_pos; float py = y_pos; float p1x = x; float p1y = y;
     float u2; float u3; float H1; float H2; float H3; float H4; float spline_x; float spline_y;
 
     //printf("\n\nSPLINE DRIVE STARTING \nlen: %f, Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f, alpha_end: %d\n\n", len, Dpx, Dpy, Dp1x, Dp1y, alpha_end);
@@ -97,15 +98,38 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
 }
 
 int main(){
+    float alpha_end; 
     // set robot position
     // robot id, x pos, y pos, z pos, angle
-    SIMSetRobot(0,1000,1000,1,0); 
+    SIMSetRobot(0,1800,200,1,0); 
 
     // Set position parameters
     VWSetPosition(x_pos, y_pos, phi);
     VWGetPosition(&x_pos, &y_pos, &phi);
-    printf("%d", phi);
-    SplineDrive(300,600,180,0);
+
+    // opening text file
+    FILE* file = fopen("way.txt", "r");
+    while (fscanf(file,"%d %d", &points[i][0], &points[i][1]) == 2) {
+        fscanf(file, "%d %d", &points[i+1][0], &points[i+1][1]);
+
+    	printf("\n\n---------POINT %d:  x:%d y:%d---------\n\n", i, points[i][0], points[i][1]);
+        
+        VWGetPosition(&x_pos, &y_pos, &phi);
+
+        // need to figure out end angle 
+        alpha_end = atan2(points[i+1][1] - points[i][1],points[i+1][0] - points[i][0])*180/pi; // - phi;
+        if (alpha_end > 180){alpha_end = alpha_end - 360;}
+        if (alpha_end < -180){alpha_end = alpha_end + 360;}
+        // printf("atan2: x: %d, y: %d \n", (points[i+1][0] - points[i][0]),(points[i+1][1] - points[i][1]));
+        // printf("alpha_end: %f\n", alpha_end);
+        SplineDrive(points[i][0],points[i][1], alpha_end, phi);
+
+	    i++;
+    }
+	
+    fclose(file);
+
+    //SplineDrive(300,600,180,0);
 
     return 0;
 }
