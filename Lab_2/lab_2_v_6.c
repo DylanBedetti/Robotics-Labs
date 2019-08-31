@@ -3,6 +3,8 @@
 #include <time.h>
 #include <math.h>
 
+//https://www.meta-chart.com/scatter#/display
+
 #define pi acos(-1.0)
 #define GREEEN   "\033[32m"
 #define RESET   "\033[0m"
@@ -21,7 +23,7 @@
 // Pretty sure I need to look at the VWGetPos and Start and End alpha's as they are most likely what is stuffing it up!
 
 
-int x_pos; int y_pos; int phi = 0;
+int x_pos, y_pos, phi = 0;
 float steps = 30; float rot_factor = 1; float lin_factor = 1; int travel_speed = 90;
 int points[20][2]; int i = 0;
 

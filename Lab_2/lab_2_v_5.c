@@ -4,6 +4,9 @@
 #include <math.h>
 
 #define pi acos(-1.0)
+#define GREEEN   "\033[32m"
+#define RESET   "\033[0m"
+#define REED     "\033[31m"   
 
 /*
            +x
@@ -16,30 +19,47 @@
  */
 
 int x_pos; int y_pos; int phi = 0; // VWGetPosition variables
-float steps = 15;
+float steps = 30;
 float rot_factor = 1;
 float lin_factor = 1;
 int travel_speed = 50;
 
 void Drive_Control(float x, float y, float u){
-    float angle_diff; float rot_new; float dist_diff; float lin_new;
+    float angle_diff; float rot_new; float dist_diff; float lin_new; float x_acc; float y_acc;
+    
     printf("\n---------Driving---------\n\n");
     VWGetPosition(&x_pos, &y_pos, &phi);
 
+    // Updating angle and dist diff
     angle_diff = atan2(y - y_pos,x - x_pos)*180/pi - phi;
     rot_new = rot_factor * angle_diff;
 
     dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
-    lin_new = (u + 0.5) * lin_factor * dist_diff;
+    lin_new = lin_factor * dist_diff; //(u + 0.5)
 
+    // Debug 
     printf("angle_diff: %f, rot_new: %f, dist_diff: %f, lin_new: %f\n", angle_diff, rot_new, dist_diff, lin_new);
-    printf("START POSITION: x: %d, y: %d, phi: %d\n", x_pos, y_pos, phi);
 
+    // limiting angle turns
+    if (rot_new > 180){rot_new = rot_new - 360;}
+    if (rot_new < -180){rot_new = rot_new + 360;}
+
+    // vehicle control
     VWCurve(lin_new, rot_new, travel_speed);
     VWWait();
 
+    // Debug
     VWGetPosition(&x_pos, &y_pos, &phi);
-    printf("END POSITION: x: %d, y: %d, phi: %d\n", x_pos, y_pos, phi);
+    printf("END POSITION: X: %d, Y: %d, phi: %d\n", x_pos, y_pos, phi);
+
+    // Debug - WITH COLOURS THOOO
+    x_acc = ((x_pos - x)/x_pos)*100; y_acc = ((y_pos - y)/y_pos)*100;
+    if (abs(x_acc) < 5 && abs(y_acc) < 5){
+        printf( GREEEN "ACCURACY: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    } else {
+        printf( REED "ACCURACY: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    }
+    
 }
 
 void SplineDrive(int x, int y, int alpha_end, int alpha_start){
@@ -50,7 +70,7 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
     float px = 0; float py = 0; float p1x = x; float p1y = y;
     float u2; float u3; float H1; float H2; float H3; float H4; float spline_x; float spline_y;
 
-    printf("\n\nSPLINE DRIVE STARTING \nlen: %f, Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f, alpha_end: %d\n\n", len, Dpx, Dpy, Dp1x, Dp1y, alpha_end);
+    //printf("\n\nSPLINE DRIVE STARTING \nlen: %f, Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f, alpha_end: %d\n\n", len, Dpx, Dpy, Dp1x, Dp1y, alpha_end);
 
     for(float u = 0; u <= 1; u += 1/steps){
         printf("\n\nStep %.0f\n", u*steps);
@@ -69,10 +89,6 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
         Drive_Control(spline_x, spline_y, u);
         
         // Debug
-        // printf("u: %f, u2: %f, u3: %f\n", u, u2, u3);
-        // printf("H1: %f, H2: %f, H3: %f, H4: %f\n", H1, H2, H3, H4);
-        // printf("px: %f, py: %f, p1x: %f, p1y %f\n", px, py, p1x, p1y);
-        // printf("Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f\n", Dpx, Dpy, Dp1x, Dp1y);
         // printf("%.1f,%.1f,", spline_x, spline_y);
     }
     MOTORDrive(1, 0);
@@ -88,7 +104,7 @@ int main(){
     VWSetPosition(x_pos, y_pos, phi);
     VWGetPosition(&x_pos, &y_pos, &phi);
     printf("%d", phi);
-    // SplineDrive(600,600,180,0);
+    SplineDrive(600,600,180,0);
 
     return 0;
 }
