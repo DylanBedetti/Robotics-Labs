@@ -19,7 +19,7 @@
  */
 
 int x_pos; int y_pos; int phi = 0; // VWGetPosition variables
-float steps = 20;
+float steps = 30;
 float rot_factor = 1;
 float lin_factor = 1;
 int travel_speed = 50;
@@ -92,6 +92,26 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
         // Debug
         // printf("%.1f,%.1f,", spline_x, spline_y);
     }
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    if (phi > alpha_end){
+        //turn clockwise
+        while (phi > alpha_end){
+            MOTORDrive(1, 5);
+            MOTORDrive(2, -5);
+            VWGetPosition(&x_pos, &y_pos, &phi);
+        }
+    }
+    
+    if (phi < alpha_end){
+        //turn clockwise
+        while (phi < alpha_end){
+            MOTORDrive(1, -5);
+            MOTORDrive(2, 5);
+            VWGetPosition(&x_pos, &y_pos, &phi);
+        }
+    }
+
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
 }

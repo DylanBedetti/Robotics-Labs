@@ -22,6 +22,7 @@ int x_pos, y_pos, phi = 0; // VWGetPosition variables
 float steps = 20; float rot_factor = 1; float lin_factor = 1;
 int travel_speed = 60;
 int points[20][2]; int i = 0;
+int alpha_ending; 
 
 void Drive_Control(float x, float y, float u){
     float angle_diff; float rot_new; float dist_diff; float lin_new; float x_acc; float y_acc;
@@ -64,9 +65,9 @@ void Drive_Control(float x, float y, float u){
 
 void SplineDrive(int x, int y, int alpha_end, int alpha_start){ 
     VWGetPosition(&x_pos, &y_pos, &phi);
-
+    printf("SPLINE DRIVE ALHPA END: %d\n", alpha_end);
     // x units forward, y units left, alpha counter clockwise in degrees
-    float len = sqrt(pow(x, 2) + pow(y, 2));
+    float len = sqrt(pow(abs(x-x_pos), 2) + pow(abs(y-y_pos), 2));
     float Dpx = len*cos(alpha_start); float Dpy = len*sin(alpha_start);
     float Dp1x = len*cos(alpha_end); float Dp1y = len*sin(alpha_end);
     float px = x_pos; float py = y_pos; float p1x = x; float p1y = y;
@@ -92,12 +93,31 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
         // Debug
         // printf("%.1f,%.1f,", spline_x, spline_y);
     }
+    // if (phi > alpha_end + 180){
+    //     //turn clockwise
+    //     while (phi > alpha_end){
+    //         MOTORDrive(1, 5);
+    //         MOTORDrive(2, -5);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //         printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
+    //     }
+    // }
+    
+    // if (phi < alpha_end + 180){
+    //     //turn clockwise
+    //     while (phi < alpha_end){
+    //         MOTORDrive(1, -5);
+    //         MOTORDrive(2, 5);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //         printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
+    //     }
+    // }
+    
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
 }
 
 int main(){
-    float alpha_end; 
     // set robot position
     // robot id, x pos, y pos, z pos, angle
     SIMSetRobot(0,1800,200,1,0); 
@@ -116,15 +136,32 @@ int main(){
         VWGetPosition(&x_pos, &y_pos, &phi);
 
         // need to figure out end angle 
-        alpha_end = atan2(points[i+1][1] - points[i][1],points[i+1][0] - points[i][0])*180/pi;// - phi;
+        alpha_ending = atan2(points[i+1][1] - points[i][1],points[i+1][0] - points[i][0])*180/pi;
 
         // if (alpha_end > 180){alpha_end = alpha_end - 360;}
         // if (alpha_end < -180){alpha_end = alpha_end + 360;}
         // printf("atan2: x: %d, y: %d \n", (points[i+1][0] - points[i][0]),(points[i+1][1] - points[i][1]));
-        alpha_end = -alpha_end - 90;
-        // phi = -phi - 90;
-        printf("alpha_end: %f, phi: %d\n", alpha_end, phi);
-        SplineDrive(points[i][0],points[i][1], alpha_end, phi);
+
+        // if (alpha_end > 0){alpha_end = alpha_end - 180;}
+        printf("PRE alpha_end: %d, phi: %d\n", alpha_ending, phi);
+        if (alpha_ending > 0){
+            alpha_ending -= 180;
+        }
+        else if (alpha_ending < 0){
+            alpha_ending += 180;
+        }
+
+        if (phi > 0){
+            phi -= 180;
+        }
+        else if (phi < 0){
+            phi += 180;
+        }
+        // alpha_ending = alpha_ending + 180;
+        // if (phi < 0){phi = 360 + phi;}
+
+        printf("alpha_end: %d, phi: %d\n", alpha_ending, phi);
+        SplineDrive(points[i][0],points[i][1], alpha_ending, phi);
         // if (i == 0){
         //     return 0;
         // }
