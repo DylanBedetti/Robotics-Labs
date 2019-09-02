@@ -100,12 +100,26 @@ int main(){
     // set robot position
     // robot id, x pos, y pos, z pos, angle
     SIMSetRobot(0,1000,1000,1,0); 
+    int x, y, alpha;
+
+    // entering values
+    printf( "Enter x value:");
+    scanf("%d", &x);
+
+    printf( "Enter y value:");
+    scanf("%d", &y);
+
+    printf( "Enter alpha value:");
+    scanf("%d", &alpha);
+
+    printf("\nYou entered: x: %d, y: %d, alpha: %d \n", x, y, alpha);
 
     // Set position parameters
     VWSetPosition(x_pos, y_pos, phi);
     VWGetPosition(&x_pos, &y_pos, &phi);
     printf("%d", phi);
-    SplineDrive(300,600,180,0);
+    // SplineDrive(300,600,180,0);
+    SplineDrive(x,y,alpha,0);
 
     return 0;
 }

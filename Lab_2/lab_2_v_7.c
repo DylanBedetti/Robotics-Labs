@@ -20,7 +20,7 @@
 
 int x_pos, y_pos, phi = 0; // VWGetPosition variables
 float steps = 20; float rot_factor = 1; float lin_factor = 1;
-int travel_speed = 50;
+int travel_speed = 60;
 int points[20][2]; int i = 0;
 
 void Drive_Control(float x, float y, float u){
@@ -62,7 +62,7 @@ void Drive_Control(float x, float y, float u){
     
 }
 
-void SplineDrive(int x, int y, int alpha_end, int alpha_start){
+void SplineDrive(int x, int y, int alpha_end, int alpha_start){ 
     VWGetPosition(&x_pos, &y_pos, &phi);
 
     // x units forward, y units left, alpha counter clockwise in degrees
@@ -72,7 +72,6 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
     float px = x_pos; float py = y_pos; float p1x = x; float p1y = y;
     float u2; float u3; float H1; float H2; float H3; float H4; float spline_x; float spline_y;
 
-    //printf("\n\nSPLINE DRIVE STARTING \nlen: %f, Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f, alpha_end: %d\n\n", len, Dpx, Dpy, Dp1x, Dp1y, alpha_end);
 
     for(float u = 0; u <= 1; u += 1/steps){
         printf("\n\nStep %.0f\n", u*steps);
@@ -117,12 +116,18 @@ int main(){
         VWGetPosition(&x_pos, &y_pos, &phi);
 
         // need to figure out end angle 
-        alpha_end = atan2(points[i+1][1] - points[i][1],points[i+1][0] - points[i][0])*180/pi; // - phi;
-        if (alpha_end > 180){alpha_end = alpha_end - 360;}
-        if (alpha_end < -180){alpha_end = alpha_end + 360;}
+        alpha_end = atan2(points[i+1][1] - points[i][1],points[i+1][0] - points[i][0])*180/pi;// - phi;
+
+        // if (alpha_end > 180){alpha_end = alpha_end - 360;}
+        // if (alpha_end < -180){alpha_end = alpha_end + 360;}
         // printf("atan2: x: %d, y: %d \n", (points[i+1][0] - points[i][0]),(points[i+1][1] - points[i][1]));
-        // printf("alpha_end: %f\n", alpha_end);
+        alpha_end = -alpha_end - 90;
+        // phi = -phi - 90;
+        printf("alpha_end: %f, phi: %d\n", alpha_end, phi);
         SplineDrive(points[i][0],points[i][1], alpha_end, phi);
+        // if (i == 0){
+        //     return 0;
+        // }
 
 	    i++;
     }
