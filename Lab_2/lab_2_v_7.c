@@ -93,25 +93,25 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
         // Debug
         // printf("%.1f,%.1f,", spline_x, spline_y);
     }
-    // if (phi > alpha_end + 180){
-    //     //turn clockwise
-    //     while (phi > alpha_end){
-    //         MOTORDrive(1, 5);
-    //         MOTORDrive(2, -5);
-    //         VWGetPosition(&x_pos, &y_pos, &phi);
-    //         printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
-    //     }
-    // }
+    if (phi > -alpha_end){
+        //turn clockwise
+        while (phi > alpha_end){
+            MOTORDrive(1, 5);
+            MOTORDrive(2, -5);
+            VWGetPosition(&x_pos, &y_pos, &phi);
+            printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
+        }
+    }
     
-    // if (phi < alpha_end + 180){
-    //     //turn clockwise
-    //     while (phi < alpha_end){
-    //         MOTORDrive(1, -5);
-    //         MOTORDrive(2, 5);
-    //         VWGetPosition(&x_pos, &y_pos, &phi);
-    //         printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
-    //     }
-    // }
+    if (phi < -alpha_end){
+        //turn clockwise
+        while (phi < alpha_end){
+            MOTORDrive(1, -5);
+            MOTORDrive(2, 5);
+            VWGetPosition(&x_pos, &y_pos, &phi);
+            printf("phi: %d, alpha_end: %d \n", phi, alpha_end);
+        }
+    }
     
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
