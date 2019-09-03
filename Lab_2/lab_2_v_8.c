@@ -34,15 +34,29 @@ void Rotate(int x, int y){
 }
 
 void Drive_until_close(int x, int y){
-    float dist_diff;
+    float dist_diff; float dist_diff_total; int i = 0;
     printf("\n---------Driving---------\n\n");
 
     VWGetPosition(&x_pos, &y_pos, &phi);
     dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+    dist_diff_total = dist_diff;
 
     while (dist_diff > 100){
         VWGetPosition(&x_pos, &y_pos, &phi);
         dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+
+        if (dist_diff / dist_diff_total < 0.8 && i == 0){
+            Rotate(x, y);
+            i++;
+        }
+        if (dist_diff / dist_diff_total < 0.6 && i == 1){
+            Rotate(x, y);
+            i++;
+        }
+        if (dist_diff / dist_diff_total < 0.4 && i == 2){
+            Rotate(x, y);
+            i++;
+        }
 
         MOTORDrive(1, 50);
         MOTORDrive(2, 50);
