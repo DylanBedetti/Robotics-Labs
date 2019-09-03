@@ -19,10 +19,11 @@
  */
 
 int x_pos; int y_pos; int phi = 0; // VWGetPosition variables
-float steps = 30;
+float steps = 20;
 float rot_factor = 1;
 float lin_factor = 1;
 int travel_speed = 50;
+int turn_speed = 100;
 
 void Drive_Control(float x, float y, float u){
     float angle_diff; float rot_new; float dist_diff; float lin_new; float x_acc; float y_acc;
@@ -65,6 +66,7 @@ void Drive_Control(float x, float y, float u){
 
 void SplineDrive(int x, int y, int alpha_end, int alpha_start){
     // x units forward, y units left, alpha counter clockwise in degrees
+    float angle_diff;
     float len = sqrt(pow(x, 2) + pow(y, 2));
     float Dpx = len*cos(alpha_start); float Dpy = len*sin(alpha_start);
     float Dp1x = len*cos(alpha_end); float Dp1y = len*sin(alpha_end);
@@ -94,23 +96,33 @@ void SplineDrive(int x, int y, int alpha_end, int alpha_start){
     }
     VWGetPosition(&x_pos, &y_pos, &phi);
 
-    if (phi > alpha_end){
-        //turn clockwise
-        while (phi > alpha_end){
-            MOTORDrive(1, 5);
-            MOTORDrive(2, -5);
-            VWGetPosition(&x_pos, &y_pos, &phi);
-        }
-    }
+    // if (phi > alpha_end){
+    //     //turn clockwise
+    //     while (phi > alpha_end){
+    //         MOTORDrive(1, turn_speed);
+    //         MOTORDrive(2, -turn_speed);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //     }
+    // }
     
-    if (phi < alpha_end){
-        //turn clockwise
-        while (phi < alpha_end){
-            MOTORDrive(1, -5);
-            MOTORDrive(2, 5);
-            VWGetPosition(&x_pos, &y_pos, &phi);
-        }
-    }
+    // if (phi < alpha_end){
+    //     //turn clockwise
+    //     while (phi < alpha_end){
+    //         MOTORDrive(1, -turn_speed);
+    //         MOTORDrive(2, turn_speed);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //     }
+    // }
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    angle_diff = atan2(y - y_pos,x - x_pos)*180/pi - phi;
+
+    if (angle_diff > 180){angle_diff = angle_diff - 360;}
+    else if (angle_diff < -180){angle_diff = angle_diff + 360;}
+
+    printf("turning angle: %f\n", angle_diff);
+    VWTurn(angle_diff, turn_speed);
+    VWWait();
 
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
