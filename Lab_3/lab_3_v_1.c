@@ -27,7 +27,7 @@
 
 int distance[8];
 int straight_speed = 50, turn_speed = 50;
-int push = 15;
+int push = 30;
 int x_pos, y_pos, phi = 0;
 float angle_diff, dist_diff;
 int x_goal = 3500, y_goal = 3500;
@@ -78,6 +78,10 @@ void follow_thicc_object(){
     VWWait();
     VWGetPosition(&x_pos, &y_pos, &phi);
 
+    // LIDARSet(360, 0, 360);  // range, tilt, points
+    // int distance[360];
+    // LIDARGet(distance);
+
     while (x_pos != start_x_pos && y_pos != start_y_pos){
         // if (distance[FRONT_RIGHT] > distance[BACK_RIGHT] && (distance[FRONT_RIGHT] < 250 || distance[RIGHT] < 250 || distance[BACK_RIGHT] < 250)){
         //     MOTORDrive(LEFT_WHEEL, straight_speed + push);
@@ -112,6 +116,7 @@ void follow_thicc_object(){
             printf("\rTurning Right, xpos: %d, ypos: %d, phi: %d, FRONT_RIGHT: %d, BACK_RIGHT: %d, k:%f", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT],k);
             fflush(stdout);
         }
+
 
         VWGetPosition(&x_pos, &y_pos, &phi);
         LIDARGet(distance);
