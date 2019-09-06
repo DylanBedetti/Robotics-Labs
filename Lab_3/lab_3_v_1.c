@@ -20,15 +20,19 @@
 #define LEFT_WHEEL 1
 #define RIGHT_WHEEL 2
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 // x and y goal is around 3500, 3500??
 
 int distance[8];
 int straight_speed = 50, turn_speed = 50;
-int push = 20;
+int push = 15;
 int x_pos, y_pos, phi = 0;
 float angle_diff, dist_diff;
 int x_goal = 3500, y_goal = 3500;
 int start_x_pos, start_y_pos;
+float k;
 
 void update_angle(){
     VWGetPosition(&x_pos, &y_pos, &phi);
@@ -75,16 +79,37 @@ void follow_thicc_object(){
     VWGetPosition(&x_pos, &y_pos, &phi);
 
     while (x_pos != start_x_pos && y_pos != start_y_pos){
+        // if (distance[FRONT_RIGHT] > distance[BACK_RIGHT] && (distance[FRONT_RIGHT] < 250 || distance[RIGHT] < 250 || distance[BACK_RIGHT] < 250)){
+        //     MOTORDrive(LEFT_WHEEL, straight_speed + push);
+        //     MOTORDrive(RIGHT_WHEEL,  straight_speed - push);
+        //     printf("\rTurning Left\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+        //     fflush(stdout);
+        // }
+        // else if (distance[FRONT_RIGHT] < distance[BACK_RIGHT] && (distance[FRONT_RIGHT] < 250 || distance[RIGHT] < 250 || distance[BACK_RIGHT] < 250)){
+        //     MOTORDrive(LEFT_WHEEL, straight_speed - push);
+        //     MOTORDrive(RIGHT_WHEEL,  straight_speed + push);
+        //     printf("\rTurning Right\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+        //     fflush(stdout);
+        // }
+        // else {
+        //     MOTORDrive(LEFT_WHEEL, straight_speed + push);
+        //     MOTORDrive(RIGHT_WHEEL,  straight_speed - push);
+        //     printf("\rTurning Left\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+        //     fflush(stdout);
+        // }
+
         if (distance[FRONT_RIGHT] > distance[BACK_RIGHT]){
-            MOTORDrive(LEFT_WHEEL, straight_speed + push);
-            MOTORDrive(RIGHT_WHEEL,  straight_speed - push);
-            printf("\rTurning Left\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+            k = (distance[FRONT_RIGHT] - distance[BACK_RIGHT]) / 500.0;
+            MOTORDrive(LEFT_WHEEL, straight_speed + push*MIN(k, 2));
+            MOTORDrive(RIGHT_WHEEL,  straight_speed - push*MIN(k, 2));
+            printf("\rTurning Left, xpos: %d, ypos: %d, phi: %d, FRONT_RIGHT: %d, BACK_RIGHT: %d, k: %f ", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT],k);
             fflush(stdout);
         }
         else {
-            MOTORDrive(LEFT_WHEEL, straight_speed - push);
-            MOTORDrive(RIGHT_WHEEL,  straight_speed + push);
-            printf("\rTurning Right\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+            k = (distance[BACK_RIGHT] - distance[FRONT_RIGHT])/ 500.0;
+            MOTORDrive(LEFT_WHEEL, straight_speed - push*MIN(k, 2));
+            MOTORDrive(RIGHT_WHEEL,  straight_speed + push*MIN(k, 2));
+            printf("\rTurning Right, xpos: %d, ypos: %d, phi: %d, FRONT_RIGHT: %d, BACK_RIGHT: %d, k:%f", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT],k);
             fflush(stdout);
         }
 
