@@ -1,0 +1,293 @@
+#include <stdio.h>
+#include "eyebot.h"
+#include <time.h>
+#include <math.h>
+
+#define pi acos(-1.0)
+#define GREEEN   "\033[32m"
+#define RESET   "\033[0m"
+#define REED     "\033[31m"   
+
+/*
+           +x
+           |
+           |            + <--
++y ---------------- -y       |
+           |               --
+           |
+           -x
+ */
+
+int x_pos; int y_pos; int phi = 0; // VWGetPosition variables
+float steps = 20;
+float rot_factor = 1;
+float lin_factor = 1;
+int travel_speed = 50;
+int turn_speed = 100;
+
+void Drive_Control(float x, float y, float u){
+    float angle_diff; float rot_new; float dist_diff; float lin_new; float x_acc; float y_acc;
+    
+    printf("\n---------Driving---------\n\n");
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    // Updating angle and dist diff
+    angle_diff = atan2(y - y_pos,x - x_pos)*180/pi - phi;
+    rot_new = rot_factor * angle_diff;
+
+    dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+    lin_new = lin_factor * dist_diff; //(u + 0.5)
+
+    // limiting angle turns
+    if (rot_new > 180){rot_new = rot_new - 360;}
+    if (rot_new < -180){rot_new = rot_new + 360;}
+
+    // Debug 
+    printf("angle_diff: %f, rot_new: %f, dist_diff: %f, lin_new: %f\n", angle_diff, rot_new, dist_diff, lin_new);
+
+
+    // vehicle control
+    VWCurve(lin_new, rot_new, travel_speed);
+    VWWait();
+
+    // Debug
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    printf("END POSITION: X: %d, Y: %d, phi: %d\n", x_pos, y_pos, phi);
+
+    // Debug - WITH COLOURS THOOO
+    x_acc = ((x_pos - x)/x_pos)*100; y_acc = ((y_pos - y)/y_pos)*100;
+    if (abs(x_acc) < 5 && abs(y_acc) < 5){
+        printf( GREEEN "ACCURACY: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    } else {
+        printf( REED "ACCURACY: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    }
+    
+}
+
+void SplineDrive(int x, int y, int alpha_end, int alpha_start){
+    // x units forward, y units left, alpha counter clockwise in degrees
+    float angle_diff;
+    float len = sqrt(pow(x, 2) + pow(y, 2));
+    float Dpx = len*cos(alpha_start); float Dpy = len*sin(alpha_start);
+    float Dp1x = len*cos(alpha_end); float Dp1y = len*sin(alpha_end);
+    float px = 0; float py = 0; float p1x = x; float p1y = y;
+    float u2; float u3; float H1; float H2; float H3; float H4; float spline_x; float spline_y;
+
+    //printf("\n\nSPLINE DRIVE STARTING \nlen: %f, Dpx: %f, Dpy: %f, Dp1x: %f, Dp1y: %f, alpha_end: %d\n\n", len, Dpx, Dpy, Dp1x, Dp1y, alpha_end);
+
+    for(float u = 0; u <= 1; u += 1/steps){
+        printf("\n\nStep %.0f\n", u*steps);
+
+        u2 = u*u; u3 = u2*u;
+
+        H1 = 2*u3 - 3*u2 + 1;
+        H2 = -2*u3 + 3*u2;
+        H3 = u3 - 2*u2 + u;
+        H4 = u3 - u2;
+
+        spline_x = H1*px + H2*p1x + H3*Dpx + H4*Dp1x;
+        spline_y = H1*py + H2*p1y + H3*Dpy + H4*Dp1y;
+
+        printf("spline: X: %f, Y: %f\n", spline_x, spline_y);
+        Drive_Control(spline_x, spline_y, u);
+        
+        // Debug
+        // printf("%.1f,%.1f,", spline_x, spline_y);
+    }
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    // if (phi > alpha_end){
+    //     //turn clockwise
+    //     while (phi > alpha_end){
+    //         MOTORDrive(1, turn_speed);
+    //         MOTORDrive(2, -turn_speed);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //     }
+    // }
+    
+    // if (phi < alpha_end){
+    //     //turn clockwise
+    //     while (phi < alpha_end){
+    //         MOTORDrive(1, -turn_speed);
+    //         MOTORDrive(2, turn_speed);
+    //         VWGetPosition(&x_pos, &y_pos, &phi);
+    //     }
+    // }
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    angle_diff = atan2(y - y_pos,x - x_pos)*180/pi - phi;
+
+    if (angle_diff > 180){angle_diff = angle_diff - 360;}
+    else if (angle_diff < -180){angle_diff = angle_diff + 360;}
+
+    printf("turning angle: %f\n", angle_diff);
+    VWTurn(angle_diff, turn_speed);
+    VWWait();
+
+    MOTORDrive(1, 0);
+    MOTORDrive(2, 0);
+}
+
+int main(){
+    // set robot position
+    // robot id, x pos, y pos, z pos, angle
+    SIMSetRobot(0,1000,1000,1,0); 
+    int x, y, alpha;
+
+    // entering values
+    printf( "Enter x value:");
+    scanf("%d", &x);
+
+    printf( "Enter y value:");
+    scanf("%d", &y);
+
+    printf( "Enter alpha value:");
+    scanf("%d", &alpha);
+
+    printf("\nYou entered: x: %d, y: %d, alpha: %d \n", x, y, alpha);
+
+    // Set position parameters
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    printf("%d", phi);
+    // SplineDrive(300,600,180,0);
+    SplineDrive(x,y,alpha,0);
+
+    return 0;
+}
+
+
+#include <stdio.h>
+#include "eyebot.h"
+#include <time.h>
+#include <math.h>
+
+#define pi acos(-1.0)
+#define GREEEN   "\033[32m"
+#define RESET   "\033[0m"
+#define REED     "\033[31m" 
+
+int points[20][2];
+int i = 0;
+int x_pos, y_pos, phi = 0;
+int x_point, y_point;
+int speed = 50;
+ 
+void Rotate(int x, int y){
+    float angle_diff;
+    printf("\n---------Rotating---------\n\n");
+
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    angle_diff = atan2(y - y_pos,x - x_pos)*180/pi - phi;
+
+    if (angle_diff > 180){angle_diff = angle_diff - 360;}
+    else if (angle_diff < -180){angle_diff = angle_diff + 360;}
+
+    printf("turning angle: %f\n", angle_diff);
+    VWTurn(angle_diff, speed);
+    VWWait();
+
+    MOTORDrive(1, 0);
+    MOTORDrive(2, 0);
+}
+
+void Drive_until_close(int x, int y){
+    float dist_diff; float dist_diff_total; int i = 0;
+    printf("\n---------Driving---------\n\n");
+
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+    dist_diff_total = dist_diff;
+
+    while (dist_diff > 100){
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+
+        if (dist_diff / dist_diff_total < 0.8 && i == 0){
+            Rotate(x, y);
+            i++;
+        }
+        if (dist_diff / dist_diff_total < 0.6 && i == 1){
+            Rotate(x, y);
+            i++;
+        }
+        if (dist_diff / dist_diff_total < 0.4 && i == 2){
+            Rotate(x, y);
+            i++;
+        }
+
+        MOTORDrive(1, 50);
+        MOTORDrive(2, 50);
+    }
+
+    MOTORDrive(1, 0);
+    MOTORDrive(2, 0);
+
+}
+
+void Drive_end(int x, int y){
+    float dist_diff; float x_acc; float y_acc;
+    printf("\n---------Driving Final---------\n\n");
+
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    dist_diff = sqrt((y_pos - y)*(y_pos - y) + (x_pos - x)*(x_pos - x) );
+
+    VWStraight(dist_diff, speed);
+    VWWait();
+
+    printf("\t\t=======SCORE======\n");
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    x_acc = ((x_pos - x)/(float)x_pos)*100.0;
+    y_acc = ((y_pos - y)/(float)y_pos)*100.0;
+    // printf("xpos - x: %d\n", (x_pos - x));
+    // printf("divide by xpos: %d\n", (x_pos - x)/x_pos);
+
+    printf("x_pos: %d, y_pos: %d, x: %d, y: %d\n", x_pos, y_pos, x, y);
+
+    if (x_acc < 5 && y_acc < 5){
+        printf( GREEEN "DIFFERENCE: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    } else {
+        printf( REED "DIFFERENCE: X:%f%%, Y:%f%%\n", x_acc, y_acc); printf(RESET);
+    }
+
+}
+
+
+int main(){
+    // set robot position
+    // robot id, x pos, y pos, z pos, angle
+    SIMSetRobot(0,1800,200,1,0); 
+
+    printf("\n\n\n \t\t STARTING BOIIII \n\n\n");
+
+    // Set position parameters
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    // opening text file
+    FILE* file = fopen("way.txt", "r");
+    while (fscanf(file,"%d %d", &points[i][0], &points[i][1]) == 2) {
+    	printf("POINT x:%d y:%d\n", points[i][0], points[i][1]);
+        x_point = points[i][0]; y_point = points[i][1];
+
+        Rotate(x_point, y_point);
+
+        Drive_until_close(x_point, y_point);
+
+        Rotate(x_point, y_point);
+
+        Drive_end(x_point, y_point);
+	    i++;
+	}
+
+    Rotate(0, 0);
+    Drive_until_close(0, 0);
+    Rotate(0, 0);
+    Drive_end(0, 0);
+    Rotate(100, 0);
+
+    fclose(file);
+
+}

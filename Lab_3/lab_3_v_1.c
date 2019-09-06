@@ -17,13 +17,18 @@
 #define BACK_RIGHT 6
 #define BACK 7
 
+#define LEFT_WHEEL 1
+#define RIGHT_WHEEL 2
+
 // x and y goal is around 3500, 3500??
 
 int distance[8];
 int straight_speed = 50, turn_speed = 50;
+int push = 20;
 int x_pos, y_pos, phi = 0;
 float angle_diff, dist_diff;
 int x_goal = 3500, y_goal = 3500;
+int start_x_pos, start_y_pos;
 
 void update_angle(){
     VWGetPosition(&x_pos, &y_pos, &phi);
@@ -39,16 +44,17 @@ void update_goal_dist(){
 }
 
 void striaght(){
-    while(distance[FRONT] > 300 && distance[FRONT_LEFT] > 300 && distance[FRONT_RIGHT] > 300){
+    printf("\nGOING STRAIGHT AND TURNING\n");
+    while(distance[FRONT] > 200 && distance[FRONT_LEFT] > 200 && distance[FRONT_RIGHT] > 300){
         MOTORDrive(1, straight_speed);
         MOTORDrive(2, straight_speed);
 
         LIDARGet(distance);
-        for (int i = 0; i < 8; i ++){printf("%d\t", distance[i]);}
+        //for (int i = 0; i < 8; i ++){printf("%d\t", distance[i]);}
 
         // update_angle();
         // printf("angle: %f", angle_diff);
-        printf("\n");
+        // printf("\n");
     }
     MOTORDrive(1, 0);
     MOTORDrive(2, 0);
@@ -58,23 +64,40 @@ void striaght(){
 }
 
 void follow_thicc_object(){
+    printf("FOLLOWING THICC OBJECT\n\n");
+    // hit point
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    start_x_pos = x_pos; start_y_pos = y_pos;
+    printf("start_x_pos: %d, start_y_pos: %d\n\n", start_x_pos, start_y_pos);
 
+    VWStraight(50, 100);
+    VWWait();
+    VWGetPosition(&x_pos, &y_pos, &phi);
 
-    while (dist[0] > 1500){
-        if (dist[side] > dist[side+2]){
-            MOTORDrive(LEFT, cruising_speed + j*push);
-            MOTORDrive(RIGHT,  cruising_speed - j*push);
+    while (x_pos != start_x_pos && y_pos != start_y_pos){
+        if (distance[FRONT_RIGHT] > distance[BACK_RIGHT]){
+            MOTORDrive(LEFT_WHEEL, straight_speed + push);
+            MOTORDrive(RIGHT_WHEEL,  straight_speed - push);
+            printf("\rTurning Left\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+            fflush(stdout);
         }
         else {
-            MOTORDrive(LEFT, cruising_speed - j*push);
-            MOTORDrive(RIGHT,  cruising_speed + j*push);
+            MOTORDrive(LEFT_WHEEL, straight_speed - push);
+            MOTORDrive(RIGHT_WHEEL,  straight_speed + push);
+            printf("\rTurning Right\t xpos: %d \t ypos: %d \t phi: %d \t FRONT_RIGHT: %d \t BACK_RIGHT: %d", x_pos, y_pos, phi, distance[FRONT_RIGHT], distance[BACK_RIGHT]);
+            fflush(stdout);
         }
-        update();
-        height_control();
+
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        LIDARGet(distance);
+
     }
+    printf("Done!\n");
+    MOTORDrive(LEFT_WHEEL, 0);
+    MOTORDrive(RIGHT_WHEEL,  0);
+
 }
 int main(){
-    
 
     SIMSetRobot(0,500,500,1,90); // !! this rotate plane so x-y are positive top left
 
