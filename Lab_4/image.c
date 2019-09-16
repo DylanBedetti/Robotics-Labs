@@ -1,4 +1,4 @@
-#include "eyebot.h"
+// #include "eyebot.h"
 
 #define LINE_MAX 255
 
@@ -71,18 +71,20 @@ void read_pbm(char *filename, BYTE **img) {
 	fclose(file);
 }
 
-int main(){
-    char* filename = "corner.pbm";
-    BYTE* img;
-    read_pbm(filename, &img);
-    printf("%d\n", img[0]);
 
-    LCDImageStart(0, 0, 128, 128);
-    LCDImageBinary(img);
 
-    for (int t = 0; t < 100; t++){
-        usleep(100000);
-        printf("%d\n", t);
-    }
-    return 0;
-}
+// int main(){
+//     char* filename = "corner.pbm";
+//     BYTE* img;
+//     read_pbm(filename, &img);
+//     printf("%d\n", img[0]);
+
+//     LCDImageStart(0, 0, 128, 128);
+//     LCDImageBinary(img);
+
+//     for (int t = 0; t < 100; t++){
+//         usleep(100000);
+//         printf("%d\n", t);
+//     }
+//     return 0;
+// }
