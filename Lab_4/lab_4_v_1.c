@@ -33,7 +33,7 @@ void vector2matrix(){
     }
 }
 
-int isAllEmpty(int x, int y, int depth){
+int isAllEmpty(int y, int x, int depth){
 	// check if quad is all empty, returns true if it is!
 	int sum = 0;
 	for (int i = x; i <(128 / pow(2, depth)) + x; i++){
@@ -50,7 +50,7 @@ int isAllEmpty(int x, int y, int depth){
 	}
 }
 
-bool isAllFull(int x, int y, int depth){
+bool isAllFull(int y, int x, int depth){
 	// checks if quad is all full, returns true if it is!
 	int sum = 0;
 	for (int i = x; i < (128 / pow(2, depth)) + x; i++){
@@ -121,22 +121,45 @@ void quadtree(int x, int y, int width, int depth) {
 }           
 
 
+void DrawQuadboxes(){ 
+    for (int i = 0; i <= free_quad_number;i++){ //draw GREEN free quads
+        LCDArea(free_quads[i].xcoord,free_quads[i].ycoord, (free_quads[i].xcoord + free_quads[i].width),(free_quads[i].ycoord + free_quads[i].width),GREEN,0);
+    } 
+    for (int i = 0; i <= block_quad_number;i++){ //draw RED blocked quads
+        LCDArea(blocked_quads[i].xcoord,blocked_quads[i].ycoord, (blocked_quads[i].xcoord + blocked_quads[i].width),(blocked_quads[i].ycoord + blocked_quads[i].width),RED,0);
+    } 
+}
+
+
 int main(){
+	// reading in image file
     read_pbm(filename, &img);
 	printf("starting program!\n\n");
 
-    // LCDImageStart(0, 0, 128, 128);
-    // LCDImageBinary(img);
+	// starting LCD
+    LCDImageStart(0, 0, 128, 128);
+    LCDImageBinary(img);
 
-
+	//converting img to img2D
 	vector2matrix();
+
+	// run quadtree
 	quadtree(0, 0, 128, 0);
 
+	// debug info
 	printf("\nblocked: %d\n", block_quad_number);
-	printf("free: %d", free_quad_number);
+	printf("free: %d\n", free_quad_number);
 
-	// printf("%d\n", isAllEmpty(64, 64, 1));
-	// printf("%d\n", isAllFull(64, 0, 2));
+	// draw quadboxes
+	DrawQuadboxes();
+	// DAVID
+	// also need to print center coordinates + print intersecting lines (that do not cross into '1' boundary)
+
+	// Then find correct path
+	// then follow path
+
+	printf("Press something to end program\n");
+    getchar(); 
 
     return 0;
 }
