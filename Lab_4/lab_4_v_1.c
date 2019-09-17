@@ -34,16 +34,16 @@ void vector2matrix(){
 }
 
 int isAllEmpty(int x, int y, int depth){
-	printf("\n\nISALLEMPYT DEPTH: %d\n", depth);
+	// check if quad is all empty, returns true if it is!
 	int sum = 0;
-	for (int i = x; i <(64 / pow(2, depth)) + x; i++){
-		for (int j = y; j < (64 / pow(2, depth)) + y; j++){
+	for (int i = x; i <(128 / pow(2, depth)) + x; i++){
+		for (int j = y; j < (128 / pow(2, depth)) + y; j++){
 			if (img2D[i][j] == 1){
 				sum = 1;
 			}
 		}
 	}
-	if (sum > 0){
+	if (sum == 1){
 		return false;
 	} else {
 		return true;
@@ -51,18 +51,19 @@ int isAllEmpty(int x, int y, int depth){
 }
 
 bool isAllFull(int x, int y, int depth){
+	// checks if quad is all full, returns true if it is!
 	int sum = 0;
-	for (int i = x; i < (64 / pow(2, depth)) + x; i++){
-		for (int j = y; j < (64 / pow(2, depth)) + y; j++){
-			if (img2D[i][j] == 1){
+	for (int i = x; i < (128 / pow(2, depth)) + x; i++){
+		for (int j = y; j < (128 / pow(2, depth)) + y; j++){
+			if (img2D[i][j] == 0){
 				sum = 1;
 			}
 		}
 	}
 	if (sum ==  1){
-		return true;
-	} else {
 		return false;
+	} else {
+		return true;
 	}
 }
 
@@ -71,21 +72,28 @@ int block_quad_number = 0;
 int free_quad_number = 0;
 int count = 0;
 void quadtree(int x, int y, int width, int depth) {
-	count++; printf("count: %d\n", count);
-	if (width >= DEPTH_LIMIT) {
+	// print out debug info
+	count++; printf("\ncount: %d, x: %d, y: %d, width: %d, depth: %d\n", count, x, y, width, depth);
+
+	// check if current width is greater than the depth limit
+	if (width > DEPTH_LIMIT) {
+		// if isAllEmpty then add x, y, depth to free_quads
 		if (isAllEmpty(x, y, depth)){
 			printf("all empty\n");
 			free_quads[free_quad_number].xcoord = x;
             free_quads[free_quad_number].ycoord = y;
             free_quads[free_quad_number].width = width;
 			free_quad_number += 1;
-		} else if (isAllFull(x, y, width)){
+		} 
+		// if isAllFull then add x, y, depth to blocked_quads
+		else if (isAllFull(x, y, depth)){
 			printf("all full\n");
 			blocked_quads[block_quad_number].xcoord = x;
             blocked_quads[block_quad_number].ycoord = y;
             blocked_quads[block_quad_number].width = width;
 			block_quad_number++; 
-		} else { // dive further
+		} else { // dive further into block because is not full or empty, is mixed!
+			printf("mixed\n");
 			int width2 = width/2;
 			int depth2 = depth + 1;
             quadtree(x, y, width2, depth2);
@@ -94,6 +102,7 @@ void quadtree(int x, int y, int width, int depth) {
             quadtree(x + width2, y + width2, width2, depth2);
 		}
 	} else { // depth limit reached
+		printf("depth limit reached\n");
 		if (isAllEmpty(x, y, depth)){
 			printf("all empty\n");
 			free_quads[free_quad_number].xcoord = x;
@@ -101,6 +110,7 @@ void quadtree(int x, int y, int width, int depth) {
             free_quads[free_quad_number].width = width;
 			free_quad_number += 1;
 		} else {
+			// if its not completely empty, then we cound it as full
 			printf("all full\n");
 			blocked_quads[block_quad_number].xcoord = x;
             blocked_quads[block_quad_number].ycoord = y;
@@ -113,22 +123,19 @@ void quadtree(int x, int y, int width, int depth) {
 
 int main(){
     read_pbm(filename, &img);
-	printf("starting!\n");
+	printf("starting program!\n\n");
 
     // LCDImageStart(0, 0, 128, 128);
     // LCDImageBinary(img);
 
-    // for (int t = 0; t < 100; t++){
-    //     usleep(100000);
-    //     printf("%d\n", t);
-    // }
+
 	vector2matrix();
 	quadtree(0, 0, 128, 0);
 
-	printf("blocked: %d", block_quad_number);
+	printf("\nblocked: %d\n", block_quad_number);
 	printf("free: %d", free_quad_number);
 
-	// printf("%d\n", isAllEmpty(64, 100, 2));
+	// printf("%d\n", isAllEmpty(64, 64, 1));
 	// printf("%d\n", isAllFull(64, 0, 2));
 
     return 0;
