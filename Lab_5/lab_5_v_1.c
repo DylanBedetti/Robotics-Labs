@@ -14,7 +14,7 @@ ORANGE, SILVER, LIGHTGRAY, DARKGRAY, NAVY, CYAN, TEAL, MAGENTA, PURPLE, MAROON, 
 int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, NAVY, CYAN, TEAL, MAGENTA, PURPLE, MAROON, YELLOW, OLIVE};
 BYTE* img;
 BYTE img2D[128][128]; 
-BYTE img2D_temp[128][128];
+BYTE img2D_temp[128][128] = {0};
 int colour_array[128][128] = {0};
 char* filename = "rectangles.pbm";
 
@@ -38,10 +38,9 @@ void printOutArray(){
 void printOutColourArray(){
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
-            // printf("%d", img2D[i][j]);
+            // LCDPixel(c, r, colours[img2D[r][c]]);
             LCDPixel(c, r, colours[colour_array[r][c]]);
         }
-    // printf("\n");
     }
 }
 
@@ -62,11 +61,26 @@ void copyArrays(int k){
             if (k == 1){
                 img2D_temp[i][j] = img2D[i][j];
             } else{
-                img2D[i][j] = img2D[i][j];
+                img2D[i][j] = img2D_temp[i][j];
             }
 
         }
     }
+}
+
+int two_neighbours(int r, int c){
+    // only considering neighbours left, right, above, below
+    int sum = 0;
+    for (int i = -1; i <= 1; i++){
+        for (int j = -1; j <= 1; j++){
+            if (i == 0 || j == 0){
+                if (img2D[r + i][c + j] > 0){
+                sum++;
+                }
+            }
+        }
+    }
+    return sum;
 }
 
 
@@ -74,7 +88,7 @@ void brushfire(){
     printf("doing brushfire!\n");
     printf("lablling objects\n");
     //label each object independently and assigning edges to 2
-    int object_num = 0;
+    int object_num = 1;
     for (int r = 0; r < 128; r ++){
         for (int c = 0; c < 128; c++){
             if (img2D[r][c] == 1){
@@ -87,13 +101,13 @@ void brushfire(){
                 }
                 else{
                     // printf("new object num: %d, r: %d, c: %d\n", object_num, r, c);
-                    object_num++;
                     colour_array[r][c] = object_num;
+                    object_num++;
                 }
             }
-            // if (r == 0 || r == 127 || c == 0 || c == 127){
-            //     img2D[r][c] = 2;
-            // }
+            if (r == 0 || r == 127 || c == 0 || c == 127){
+                img2D[r][c] = 1;
+            }
         }
     }
 
@@ -104,22 +118,31 @@ void brushfire(){
     copyArrays(1);
 
     printf("Starting numbering\n");
+    printf("Object num: %d\n", object_num);
     // looping through
     int contains_zeros = 0;
     for (int i = 2; contains_zeros == 0; i++){
         for (int r = 1; r < 127; r++){
             for (int c = 1; c < 127; c++){
-                if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0) && (img2D[r][c] == 0)){
+                if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0 || img2D[r + 1][c + 1] != 0 || img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0 || img2D[r + 1][c - 1] != 0) && (img2D[r][c] == 0)){
                     img2D_temp[r][c] = i;
                 }
+                if (two_neighbours(r, c) >= 2 && (img2D[r][c] == 0)){
+                    colour_array[r][c] = object_num;
+                }
+                // if ((img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0) && (img2D[r][c] == 0)){
+                //     colour_array[r][c] = object_num;
+                // }
+
             }
-        }
-        printOutArray();
-        getchar(); 
+        } 
         contains_zeros = check_zeros();
         printf("contains zeros: %d\n", contains_zeros);
         // img2D = img2D_temp;
         copyArrays(0);
+        printOutArray();
+        printOutColourArray();
+        getchar();
     }
 }
 
@@ -133,12 +156,12 @@ int main(){
 	printf("starting program!\n\n");
 
 	// starting LCD
-    // LCDImageStart(0, 0, 128, 128);
-    // LCDImageBinary(img);
+    LCDImageStart(0, 0, 128, 128);
+    LCDImageBinary(img);
 
     vectorToMatrix();
     // printOutArray(GREEN);
-    // LCDSetPrintf(15, 0, "HELLOO");
+    LCDSetPrintf(15, 0, "PRESS ENTER!");
 
     brushfire();
     // printOutColourArray();
