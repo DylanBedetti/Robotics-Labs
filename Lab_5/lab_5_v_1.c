@@ -5,12 +5,7 @@
 #include <math.h>
 #include <stdbool.h>
 
-// Colours
-/*
-Color Constants (COLOR is data type "int" in RGB order):
-RED (0xFF0000), GREEN (0x00FF00), BLUE (0x0000FF), WHITE (0xFFFFFF), GRAY (0x808080), BLACK (0)
-ORANGE, SILVER, LIGHTGRAY, DARKGRAY, NAVY, CYAN, TEAL, MAGENTA, PURPLE, MAROON, YELLOW, OLIVE
-*/
+
 int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, NAVY, CYAN, TEAL, MAGENTA, PURPLE, MAROON, YELLOW, OLIVE};
 BYTE* img;
 BYTE img2D[128][128]; 
@@ -34,7 +29,7 @@ void printOutArray(){
             printf("%d", img2D[i][j]);
         }
     printf("\n");
-}
+    }
 }
 
 void printOutColourArray(){
