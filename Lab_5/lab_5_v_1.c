@@ -19,6 +19,7 @@ int colour_array[128][128] = {0};
 char* filename = "rectangles.pbm";
 
 void vectorToMatrix(){
+    // chaning img vector to img2D matrix
     for(int i = 0; i <128 ;i++){ 
         for(int j = 0; j <128 ; j++){
             img2D[i][j]= img[(i*128+j)];
@@ -27,6 +28,7 @@ void vectorToMatrix(){
 }
 
 void printOutArray(){
+    // terminal print of array
     for(int i = 0; i < 128; i++){
         for(int j = 0; j < 128; j++){
             printf("%d", img2D[i][j]);
@@ -36,6 +38,7 @@ void printOutArray(){
 }
 
 void printOutColourArray(){
+    // printing to LCD 
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
             // LCDPixel(c, r, colours[img2D[r][c]]);
@@ -45,6 +48,7 @@ void printOutColourArray(){
 }
 
 int check_zeros(){
+    // checking if zeros left in img2D
     for(int i = 0; i < 128; i++){
         for(int j = 0; j < 128; j++){
             if (img2D[i][j] == 0){
@@ -56,6 +60,7 @@ int check_zeros(){
 }
 
 void copyArrays(int k){
+    // function for copying arrays between eachother
     for(int i = 0; i < 128; i++){
         for(int j = 0; j < 128; j++){
             if (k == 1){
@@ -105,6 +110,7 @@ void brushfire(){
                     object_num++;
                 }
             }
+            // setting edges to 1
             if (r == 0 || r == 127 || c == 0 || c == 127){
                 img2D[r][c] = 1;
             }
@@ -124,24 +130,23 @@ void brushfire(){
     for (int i = 2; contains_zeros == 0; i++){
         for (int r = 1; r < 127; r++){
             for (int c = 1; c < 127; c++){
+                // 8-nearest neighbour
                 if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0 || img2D[r + 1][c + 1] != 0 || img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0 || img2D[r + 1][c - 1] != 0) && (img2D[r][c] == 0)){
                     img2D_temp[r][c] = i;
                 }
+                // checking for atleast two neighbours (left, right, top, bottom)
                 if (two_neighbours(r, c) >= 2 && (img2D[r][c] == 0)){
-                    colour_array[r][c] = object_num;
+                    colour_array[r][c] = object_num; // setting Voronoi point
                 }
-                // if ((img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0) && (img2D[r][c] == 0)){
-                //     colour_array[r][c] = object_num;
-                // }
 
             }
         } 
         contains_zeros = check_zeros();
-        printf("contains zeros: %d\n", contains_zeros);
+
         // img2D = img2D_temp;
         copyArrays(0);
-        printOutArray();
-        printOutColourArray();
+        printOutArray(); //terminal
+        printOutColourArray(); //LCD
         getchar();
     }
 }
@@ -158,20 +163,16 @@ int main(){
 	// starting LCD
     LCDImageStart(0, 0, 128, 128);
     LCDImageBinary(img);
-
-    vectorToMatrix();
-    // printOutArray(GREEN);
     LCDSetPrintf(15, 0, "PRESS ENTER!");
+    
+    // reading image file to matrix
+    vectorToMatrix();
 
+    //brushfire functon
     brushfire();
-    // printOutColourArray();
 
-    // for(int i = 0; i < 128; i++){
-    //     for(int j = 0; j < 128; j++){
-    //         printf("%d", img2D[i][j]);
-    //     }
-    //     printf("\n");
-    // }
+    // need to add drive
+
 
     printf("Press enter to end program\n");
     getchar(); 
