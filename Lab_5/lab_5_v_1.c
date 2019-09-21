@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 
-int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, NAVY, CYAN, TEAL, MAGENTA, PURPLE, MAROON, YELLOW, OLIVE};
+int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, YELLOW, CYAN, TEAL, MAGENTA, PURPLE, MAROON, NAVY, OLIVE};
 BYTE* img;
 BYTE img2D[128][128]; 
 BYTE img2D_temp[128][128] = {0};
@@ -36,7 +36,6 @@ void printOutColourArray(){
     // printing to LCD 
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
-            // LCDPixel(c, r, colours[img2D[r][c]]);
             LCDPixel(c, r, colours[colour_array[r][c]]);
         }
     }
@@ -83,6 +82,35 @@ int two_neighbours(int r, int c){
     return sum;
 }
 
+int eightNearest(int r, int c, int i, int object_num){
+    int c_1 = 0;
+    int i_1, j_1;
+    if (img2D[r][c] == 0){
+        for (int i = -1; i <= 1; i++){
+            for (int j = -1; j <= 1; j++){
+                if (i != 0 && j != 0){
+                    if (img2D[r + i][c + j] != 0){
+                        if (c_1 == 0){
+                            c_1 = colour_array[r + i][c + j];
+                            i_1 = i;
+                            j_1 = j;
+                        } else if (colour_array[r + i][c + j] != c_1){
+                            colour_array[r][c] = object_num;
+                            return i;
+                        }
+                    }
+                }
+            }
+        }
+        if (c_1 != 0){
+            colour_array[r][c] = colour_array[r + i_1][c + j_1];
+            return i;
+        }
+    } else{
+        return 0;
+    }
+}
+
 
 void brushfire(){
     printf("doing brushfire!\n");
@@ -112,6 +140,32 @@ void brushfire(){
         }
     }
 
+    for (int i = 0; i < 128; i++){
+        colour_array[i][0] = object_num;
+    }
+    object_num++;
+    
+    for (int i = 0; i < 128; i++){
+        colour_array[0][i] = object_num;
+    }
+    object_num++;
+
+    for (int i = 0; i < 128; i++){
+        colour_array[i][127] = object_num;
+    }
+    object_num++;
+
+        for (int i = 0; i < 128; i++){
+        colour_array[127][i] = object_num;
+    }
+    object_num++;
+
+    // making corners veroni
+    colour_array[0][0] = object_num;
+    colour_array[0][127] = object_num;
+    colour_array[127][0] = object_num;
+    colour_array[127][127] = object_num;
+
     printOutArray();
     getchar();
 
@@ -126,10 +180,12 @@ void brushfire(){
         for (int r = 1; r < 127; r++){
             for (int c = 1; c < 127; c++){
                 // 8-nearest neighbour
-                if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0 || img2D[r + 1][c + 1] != 0 || img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0 || img2D[r + 1][c - 1] != 0) && (img2D[r][c] == 0)){
-                    img2D_temp[r][c] = i;
-                }
+                // if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0 || img2D[r + 1][c + 1] != 0 || img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0 || img2D[r + 1][c - 1] != 0) && (img2D[r][c] == 0)){
+                // }
                 // checking for atleast two neighbours (left, right, top, bottom)
+                if (eightNearest(r, c, i, object_num) > 0){
+                    img2D_temp[r][c] = eightNearest(r, c, i, object_num);
+                }
                 if (two_neighbours(r, c) >= 2 && (img2D[r][c] == 0)){
                     colour_array[r][c] = object_num; // setting Voronoi point
                 }
@@ -142,7 +198,7 @@ void brushfire(){
         copyArrays(0);
         printOutArray(); //terminal
         printOutColourArray(); //LCD
-        getchar();
+        getchar(); // wait for next loop
     }
 }
 
@@ -167,7 +223,6 @@ int main(){
     brushfire();
 
     // need to add drive
-
 
     printf("Press enter to end program\n");
     getchar(); 
