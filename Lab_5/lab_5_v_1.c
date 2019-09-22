@@ -13,6 +13,8 @@ BYTE img2D_temp[128][128] = {0};
 int colour_array[128][128] = {0};
 char* filename = "rectangles.pbm";
 int object_num = 1;
+int x_pos, y_pos, phi = 0;
+int speed = 50;
 
 void vectorToMatrix(){
     // chaning img vector to img2D matrix
@@ -122,14 +124,20 @@ void brushfire(){
     printf("lablling objects\n");
     //label each object independently and assigning edges to 2
     // currently will only work for square shapes!
-    for (int r = 0; r < 128; r ++){
+    for (int r = 0; r < 128; r++){
         for (int c = 0; c < 128; c++){
             if (img2D[r][c] == 1){
                 if(colour_array[r][c - 1] != 0){
-                    colour_array[r][c] = colour_array[r][c-1];
+                    colour_array[r][c] = colour_array[r][c - 1];
                     // printf("r: %d, c: %d\n", r, c);
                 } else if(colour_array[r - 1][c] != 0){
-                    colour_array[r][c] = colour_array[r-1][c];
+                    colour_array[r][c] = colour_array[r - 1][c];
+                    // printf("r: %d, c: %d\n", r, c);
+                } else if(colour_array[r - 1][c - 1] != 0){
+                    colour_array[r][c] = colour_array[r - 1][c - 1];
+                    // printf("r: %d, c: %d\n", r, c);
+                }else if(colour_array[r - 1][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r - 1][c + 1];
                     // printf("r: %d, c: %d\n", r, c);
                 }
                 else{
@@ -195,7 +203,7 @@ void brushfire(){
 
         // img2D = img2D_temp;
         copyArrays(0);
-        printOutArray(); //terminal
+        // printOutArray(); //terminal
         printOutColourArray(); //LCD
         // getchar(); // wait for next loop
     }
@@ -206,6 +214,17 @@ void brushfire(){
 
 
 int main(){
+    // // setting robot top left
+    // SIMSetRobot(0,200,3800,1, 0);
+
+    // // getting current pos
+    // VWSetPosition(x_pos, y_pos, phi);
+    // VWGetPosition(&x_pos, &y_pos, &phi);
+
+    // // rotating into right angle
+    // VWTurn(-135, speed);
+    // VWWait();
+
 	// reading in image file
     read_pbm(filename, &img);
 	printf("starting program!\n\n");
@@ -226,6 +245,9 @@ int main(){
     printOutColourVeroni();
 
     // need to add drive
+    // map is 4000, 4000. Therefore GetPos is equivalent to (pos/4000)*128
+
+
 
     printf("Press enter to end program\n");
     getchar(); 
