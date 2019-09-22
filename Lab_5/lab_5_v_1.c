@@ -12,6 +12,7 @@ BYTE img2D[128][128];
 BYTE img2D_temp[128][128] = {0};
 int colour_array[128][128] = {0};
 char* filename = "rectangles.pbm";
+int object_num = 1;
 
 void vectorToMatrix(){
     // chaning img vector to img2D matrix
@@ -37,6 +38,19 @@ void printOutColourArray(){
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
             LCDPixel(c, r, colours[colour_array[r][c]]);
+        }
+    }
+}
+
+void printOutColourVeroni(){
+    // printing to LCD 
+    for(int r = 0; r < 128; r++){
+        for(int c = 0; c < 128; c++){
+            if (colour_array[r][c] == object_num){
+                LCDPixel(c, r, colours[colour_array[r][c]]);
+            } else {
+                LCDPixel(c, r, 0);
+            }
         }
     }
 }
@@ -67,48 +81,39 @@ void copyArrays(int k){
     }
 }
 
-int two_neighbours(int r, int c){
-    // only considering neighbours left, right, above, below
-    int sum = 0;
-    for (int i = -1; i <= 1; i++){
-        for (int j = -1; j <= 1; j++){
-            if (i == 0 || j == 0){
-                if (img2D[r + i][c + j] > 0){
-                sum++;
-                }
-            }
-        }
-    }
-    return sum;
-}
-
-int eightNearest(int r, int c, int i, int object_num){
-    int c_1 = 0;
-    int i_1, j_1;
+int eightNearest(int r, int c){
     if (img2D[r][c] == 0){
         for (int i = -1; i <= 1; i++){
             for (int j = -1; j <= 1; j++){
                 if (i != 0 && j != 0){
                     if (img2D[r + i][c + j] != 0){
+                        colour_array[r][c] = colour_array[r + i][c + j];
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+int eightveroni(int r, int c){
+    int c_1 = 0;
+    for (int i = -1; i <= 1; i++){
+            for (int j = -1; j <= 1; j++){
+                if (i != 0 && j != 0){
+                    if (colour_array[r + i][c + j] != 0){
                         if (c_1 == 0){
                             c_1 = colour_array[r + i][c + j];
-                            i_1 = i;
-                            j_1 = j;
-                        } else if (colour_array[r + i][c + j] != c_1){
+                        } else if (c_1 != colour_array[r + i][c + j]){
                             colour_array[r][c] = object_num;
-                            return i;
+                            return 0;
                         }
                     }
                 }
             }
         }
-        if (c_1 != 0){
-            colour_array[r][c] = colour_array[r + i_1][c + j_1];
-            return i;
-        }
-    } else{
-        return 0;
-    }
+    return 0;
 }
 
 
@@ -116,7 +121,7 @@ void brushfire(){
     printf("doing brushfire!\n");
     printf("lablling objects\n");
     //label each object independently and assigning edges to 2
-    int object_num = 1;
+    // currently will only work for square shapes!
     for (int r = 0; r < 128; r ++){
         for (int c = 0; c < 128; c++){
             if (img2D[r][c] == 1){
@@ -180,16 +185,10 @@ void brushfire(){
         for (int r = 1; r < 127; r++){
             for (int c = 1; c < 127; c++){
                 // 8-nearest neighbour
-                // if ((img2D[r + 1][c] != 0 || img2D[r - 1][c] != 0 || img2D[r][c + 1] != 0 || img2D[r][c - 1] != 0 || img2D[r + 1][c + 1] != 0 || img2D[r - 1][c - 1] != 0 || img2D[r - 1][c + 1] != 0 || img2D[r + 1][c - 1] != 0) && (img2D[r][c] == 0)){
-                // }
-                // checking for atleast two neighbours (left, right, top, bottom)
-                if (eightNearest(r, c, i, object_num) > 0){
-                    img2D_temp[r][c] = eightNearest(r, c, i, object_num);
+                if (eightNearest(r, c)){
+                    img2D_temp[r][c] = i;
+                    eightveroni(r, c);
                 }
-                if (two_neighbours(r, c) >= 2 && (img2D[r][c] == 0)){
-                    colour_array[r][c] = object_num; // setting Voronoi point
-                }
-
             }
         } 
         contains_zeros = check_zeros();
@@ -198,7 +197,7 @@ void brushfire(){
         copyArrays(0);
         printOutArray(); //terminal
         printOutColourArray(); //LCD
-        getchar(); // wait for next loop
+        // getchar(); // wait for next loop
     }
 }
 
@@ -221,6 +220,10 @@ int main(){
 
     //brushfire functon
     brushfire();
+
+    printf("see only veroni!\n");
+    getchar();
+    printOutColourVeroni();
 
     // need to add drive
 
