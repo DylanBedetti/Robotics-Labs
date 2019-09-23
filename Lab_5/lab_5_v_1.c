@@ -213,15 +213,15 @@ void brushfire(){
 
 int main(){
     // // setting robot top left
-    // SIMSetRobot(0,200,3800,1, 0);
+    SIMSetRobot(0,200,3800,1, 0);
 
-    // // getting current pos
-    // VWSetPosition(x_pos, y_pos, phi);
-    // VWGetPosition(&x_pos, &y_pos, &phi);
+    // getting current pos
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
 
-    // // rotating into right angle
-    // VWTurn(-135, speed);
-    // VWWait();
+    // rotating into right angle
+    VWTurn(-135, speed);
+    VWWait();
 
 	// reading in image file
     read_pbm(filename, &img);
