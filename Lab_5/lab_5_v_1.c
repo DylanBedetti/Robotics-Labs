@@ -11,10 +11,13 @@ BYTE* img;
 BYTE img2D[128][128]; 
 BYTE img2D_temp[128][128] = {0};
 int colour_array[128][128] = {0};
+int route[128][128] = {0};
 char* filename = "rectangles.pbm";
 int object_num = 1;
 int x_pos, y_pos, phi = 0;
 int speed = 50;
+int r_pos = 127;
+int c_pos = 127;
 
 void vectorToMatrix(){
     // chaning img vector to img2D matrix
@@ -35,6 +38,16 @@ void printOutArray(){
     }
 }
 
+void printRoute(){
+    // terminal print of array
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            printf("%d", route[i][j]);
+        }
+    printf("\n");
+    }
+}
+
 void printOutColourArray(){
     // printing to LCD 
     for(int r = 0; r < 128; r++){
@@ -50,10 +63,13 @@ void printOutColourVeroni(){
         for(int c = 0; c < 128; c++){
             if (colour_array[r][c] == object_num){
                 LCDPixel(c, r, colours[colour_array[r][c]]);
+                printf("1");
             } else {
                 LCDPixel(c, r, 0);
+                printf("0");
             }
         }
+        printf("\n");
     }
 }
 
@@ -202,17 +218,76 @@ void brushfire(){
         // img2D = img2D_temp;
         copyArrays(0);
         // printOutArray(); //terminal
-        printOutColourArray(); //LCD
+        // printOutColourArray(); //LCD
         // getchar(); // wait for next loop
     }
 }
 
+int find_closest(){
+    if (colour_array[r_pos][c_pos - 1] == object_num){
+        r_pos = r_pos;
+        c_pos = c_pos - 1;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos - 1][c_pos - 1] == object_num){
+        r_pos = r_pos - 1;
+        c_pos = c_pos - 1;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos - 1][c_pos] == object_num){
+        r_pos = r_pos - 1;
+        c_pos = c_pos;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos - 1][c_pos + 1] == object_num){
+        r_pos = r_pos - 1;
+        c_pos = c_pos + 1;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos + 1][c_pos - 1] == object_num){
+        r_pos = r_pos + 1;
+        c_pos = c_pos - 1;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos + 1][c_pos] == object_num){
+        r_pos = r_pos + 1;
+        c_pos = c_pos;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    if (colour_array[r_pos][c_pos + 1] == object_num){
+        r_pos = r_pos;
+        c_pos = c_pos + 1;
+        route[r_pos][c_pos] = 1;
+        return 0;
+    }
+    return 0;
+}
 
-
+void findRoute(){
+    printf("\n\n FINDING ROUTE\n\n");
+    // function to find a route from bottom right to top left
+    // at each pixel, choose the one that will get you closes to the top left
+    route[127][127] = 1;
+    while(route[0][0] == 0){
+        find_closest();
+        // printf("ROUTE\n");
+        // printRoute();
+        // printf("VERONI\n");
+        // printOutColourVeroni();
+        // getchar();
+    }
+    printRoute();
+}
 
 
 int main(){
-    // // setting robot top left
+    // setting robot top left
     SIMSetRobot(0,200,3800,1, 0);
 
     // getting current pos
@@ -245,6 +320,8 @@ int main(){
     // need to add drive
     // map is 4000, 4000. Therefore GetPos is equivalent to (pos/4000)*128
 
+
+    findRoute();
 
 
     printf("Press enter to end program\n");
