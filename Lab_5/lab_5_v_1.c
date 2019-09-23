@@ -223,47 +223,47 @@ void brushfire(){
     }
 }
 
-int find_closest(){
+int find_closest(int i){
     if (colour_array[r_pos][c_pos - 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos - 1][c_pos - 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos - 1][c_pos] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos - 1][c_pos + 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos + 1][c_pos - 1] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos + 1][c_pos] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     if (colour_array[r_pos][c_pos + 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     return 0;
@@ -273,9 +273,11 @@ void findRoute(){
     printf("\n\n FINDING ROUTE\n\n");
     // function to find a route from bottom right to top left
     // at each pixel, choose the one that will get you closes to the top left
-    route[127][127] = 1;
+    int i = 1;
+    route[127][127] = i;
     while(route[0][0] == 0){
-        find_closest();
+        i++;
+        find_closest(i);
         // printf("ROUTE\n");
         // printRoute();
         // printf("VERONI\n");
