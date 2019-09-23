@@ -124,24 +124,22 @@ void brushfire(){
     printf("lablling objects\n");
     //label each object independently and assigning edges to 2
     // currently will only work for square shapes!
-    for (int r = 0; r < 128; r++){
-        for (int c = 0; c < 128; c++){
+    for (int c = 128; c >= 0; c--){
+        for (int r = 127; r >= 0; r--){
             if (img2D[r][c] == 1){
-                if(colour_array[r][c - 1] != 0){
-                    colour_array[r][c] = colour_array[r][c - 1];
-                    // printf("r: %d, c: %d\n", r, c);
-                } else if(colour_array[r - 1][c] != 0){
-                    colour_array[r][c] = colour_array[r - 1][c];
-                    // printf("r: %d, c: %d\n", r, c);
-                } else if(colour_array[r - 1][c - 1] != 0){
-                    colour_array[r][c] = colour_array[r - 1][c - 1];
-                    // printf("r: %d, c: %d\n", r, c);
-                }else if(colour_array[r - 1][c + 1] != 0){
+                if(colour_array[r - 1][c + 1] != 0){
                     colour_array[r][c] = colour_array[r - 1][c + 1];
-                    // printf("r: %d, c: %d\n", r, c);
+
+                } else if(colour_array[r][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r][c + 1];
+
+                } else if(colour_array[r + 1][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r + 1][c + 1];
+
+                }else if(colour_array[r + 1][c] != 0){
+                    colour_array[r][c] = colour_array[r + 1][c];
                 }
                 else{
-                    // printf("new object num: %d, r: %d, c: %d\n", object_num, r, c);
                     colour_array[r][c] = object_num;
                     object_num++;
                 }
