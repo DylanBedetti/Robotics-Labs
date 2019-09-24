@@ -139,6 +139,8 @@ int eightveroni(int r, int c){
     return 0;
 }
 
+
+
 void brushfire(){
     printf("doing brushfire!\n");
     printf("lablling objects\n");
@@ -227,49 +229,60 @@ void brushfire(){
 
         copyArrays(0);
         // printOutArray(); //terminal
-        printOutColourArray(); //LCD
-        getchar(); // wait for next loop
+        // printOutColourArray(); //LCD
+        // getchar(); // wait for next loop
     }
+    for (int r = 1; r < 127; r++){
+        for (int c = 1; c < 127; c++){
+            if(colour_array[r + 1][c] == object_num && colour_array[r - 1][c] == object_num){
+                colour_array[r][c] = object_num;
+            } else if (colour_array[r][c + 1] == object_num && colour_array[r][c + 1] == object_num){
+                colour_array[r][c] = object_num;
+            }
+        }
+    }
+    printOutColourArray();
 }
 
+
 int find_closest(){
-    if (colour_array[r_pos][c_pos - 1] == object_num){
+    if (colour_array[r_pos][c_pos - 1] == object_num && colour_array[r_pos][c_pos - 1] != 1){
         r_pos = r_pos;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos - 1] == object_num){
+    else if (colour_array[r_pos - 1][c_pos - 1] == object_num && colour_array[r_pos - 1][c_pos - 1] != 1){
         r_pos = r_pos - 1;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos] == object_num){
+    else if (colour_array[r_pos - 1][c_pos] == object_num && colour_array[r_pos - 1][c_pos] != 1){
         r_pos = r_pos - 1;
         c_pos = c_pos;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos + 1] == object_num){
+    else if (colour_array[r_pos - 1][c_pos + 1] == object_num && colour_array[r_pos - 1][c_pos + 1] != 1){
         r_pos = r_pos - 1;
         c_pos = c_pos + 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos - 1] == object_num){
+    else if (colour_array[r_pos + 1][c_pos - 1] == object_num && colour_array[r_pos + 1][c_pos - 1] != 1){
         r_pos = r_pos + 1;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos] == object_num){
+    else if (colour_array[r_pos + 1][c_pos] == object_num && colour_array[r_pos + 1][c_pos] != 1){
         r_pos = r_pos + 1;
         c_pos = c_pos;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos][c_pos + 1] == object_num){
+    else if (colour_array[r_pos][c_pos + 1] == object_num && colour_array[r_pos][c_pos + 1] != 1){
         r_pos = r_pos;
         c_pos = c_pos + 1;
         route[r_pos][c_pos] = 1;
@@ -278,34 +291,52 @@ int find_closest(){
     return 0;
 }
 
+int find_random(int i){
+    for (int r = r_pos - 1; r <= r_pos + 1; r++){
+        for (int c = c_pos - 1; c <= c_pos + 1; c++){
+            printf("r: %d, c: %d\n", r, c);
+            if (colour_array[r][c] == object_num && route[r][c] != 1){
+                r_pos = r;
+                c_pos = c;
+                route[r_pos][c_pos] = i;
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
 void findRoute(){
     printf("\n\n FINDING ROUTE\n\n");
     // function to find a route from bottom right to top left
     // at each pixel, choose the one that will get you closes to the top left
-    route[127][127] = 1;
+    int i = 1;
+    route[127][127] = i;
     while(route[0][0] == 0){
-        find_closest();
+        i++;
+        // find_closest();
+        find_random(i);
         // printf("ROUTE\n");
         printRoute();
         // printf("VERONI\n");
         // printOutColourVeroni();
-        getchar();
+        // getchar();
     }
     printRoute();
 }
 
 
 int main(){
-    // // setting robot top left
-    // SIMSetRobot(0,200,3800,1, 0);
+    // setting robot top left
+    SIMSetRobot(0,200,3800,1, 0);
 
-    // // getting current pos
-    // VWSetPosition(x_pos, y_pos, phi);
-    // VWGetPosition(&x_pos, &y_pos, &phi);
+    // getting current pos
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
 
-    // // rotating into right angle
-    // VWTurn(-135, speed);
-    // VWWait();
+    // rotating into right angle
+    VWTurn(-135, speed);
+    VWWait();
 
 	// reading in image file
     read_pbm(filename, &img);
