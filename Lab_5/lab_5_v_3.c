@@ -54,7 +54,9 @@ void printOutColourArray(){
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
             LCDPixel(c, r, colours[colour_array[r][c]]);
+            printf("%d", colour_array[r][c]);
         }
+        printf("\n");
     }
 }
 
@@ -123,7 +125,7 @@ int eightveroni(int r, int c){
     for (int i = -1; i <= 1; i++){
             for (int j = -1; j <= 1; j++){
                 if (i != 0 && j != 0){
-                    if (colour_array[r + i][c + j] != 0){
+                    if (colour_array[r + i][c + j] != 0 && colour_array[r + i][c + j] != object_num){
                         if (c_1 == 0){
                             c_1 = colour_array[r + i][c + j];
                         } else if (c_1 != colour_array[r + i][c + j]){
@@ -136,6 +138,12 @@ int eightveroni(int r, int c){
         }
     return 0;
 }
+
+// void topOrRight(int r, int c){
+//     if ((colour_array_temp[r - 1][c] != colour_array_temp[r - 1][c - 1]) && (colour_array_temp[r - 1][c] != 0) && (colour_array_temp[r - 1][c - 1] != 0) ){
+//         colour_array_temp[r][c] = object_num;
+//     }
+// }
 
 
 void brushfire(){
@@ -202,11 +210,11 @@ void brushfire(){
     // img2D_temp = img2D;
     copyArrays(1);
 
-    // for(int i = 0; i < 128; i++){
-    //     for(int j = 0; j < 128; j++){
-    //         colour_array_temp[i][j] = colour_array[i][j];
-    //     }
-    // }
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            colour_array_temp[i][j] = colour_array[i][j];
+        }
+    }
 
     printf("Starting numbering\n");
     printf("Object num: %d\n", object_num);
@@ -219,57 +227,63 @@ void brushfire(){
                 if (eightNearest(r, c)){
                     img2D_temp[r][c] = i;
                     eightveroni(r, c);
+                    // topOrRight(r, c);
                 }
             }
         } 
         contains_zeros = check_zeros();
 
         // img2D = img2D_temp;
+        // for(int i = 0; i < 128; i++){
+        //     for(int j = 0; j < 128; j++){
+        //     colour_array[i][j] = colour_array_temp[i][j];
+        //     }
+        // }
         copyArrays(0);
         // printOutArray(); //terminal
         printOutColourArray(); //LCD
-        // getchar(); // wait for next loop
+        getchar(); // wait for next loop
     }
 }
 
 int find_closest(){
-    if (colour_array[r_pos][c_pos - 1] == object_num && colour_array[r_pos][c_pos - 1] != 1){
+    if (colour_array[r_pos][c_pos - 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos - 1] == object_num && colour_array[r_pos - 1][c_pos - 1] != 1){
+    else if (colour_array[r_pos - 1][c_pos - 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos] == object_num && colour_array[r_pos - 1][c_pos] != 1){
+    else if (colour_array[r_pos - 1][c_pos] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos + 1] == object_num && colour_array[r_pos - 1][c_pos + 1] != 1){
+    else if (colour_array[r_pos - 1][c_pos + 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos + 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos - 1] == object_num && colour_array[r_pos + 1][c_pos - 1] != 1){
+    else if (colour_array[r_pos + 1][c_pos - 1] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos - 1;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos] == object_num && colour_array[r_pos + 1][c_pos] != 1){
+    else if (colour_array[r_pos + 1][c_pos] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos;
         route[r_pos][c_pos] = 1;
         return 0;
     }
-    else if (colour_array[r_pos][c_pos + 1] == object_num && colour_array[r_pos][c_pos + 1] != 1){
+    else if (colour_array[r_pos][c_pos + 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos + 1;
         route[r_pos][c_pos] = 1;
@@ -296,16 +310,16 @@ void findRoute(){
 
 
 int main(){
-    // setting robot top left
-    SIMSetRobot(0,200,3800,1, 0);
+    // // setting robot top left
+    // SIMSetRobot(0,200,3800,1, 0);
 
-    // getting current pos
-    VWSetPosition(x_pos, y_pos, phi);
-    VWGetPosition(&x_pos, &y_pos, &phi);
+    // // getting current pos
+    // VWSetPosition(x_pos, y_pos, phi);
+    // VWGetPosition(&x_pos, &y_pos, &phi);
 
-    // rotating into right angle
-    VWTurn(-135, speed);
-    VWWait();
+    // // rotating into right angle
+    // VWTurn(-135, speed);
+    // VWWait();
 
 	// reading in image file
     read_pbm(filename, &img);
