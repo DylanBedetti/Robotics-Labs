@@ -4,8 +4,16 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#define TURN_SPEED 10
+#define PI acos(-1)
 
-
+typedef struct World_Route {
+    int x;
+    int y;
+    int count;
+} World_Route;
+int counter = 0;
+World_Route world_route[1000];
 int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, YELLOW, CYAN, TEAL, MAGENTA, PURPLE, MAROON, NAVY, OLIVE};
 BYTE* img;
 BYTE img2D[128][128]; 
@@ -244,53 +252,6 @@ void brushfire(){
     printOutColourArray();
 }
 
-
-int find_closest(){
-    if (colour_array[r_pos][c_pos - 1] == object_num && colour_array[r_pos][c_pos - 1] != 1){
-        r_pos = r_pos;
-        c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos - 1][c_pos - 1] == object_num && colour_array[r_pos - 1][c_pos - 1] != 1){
-        r_pos = r_pos - 1;
-        c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos - 1][c_pos] == object_num && colour_array[r_pos - 1][c_pos] != 1){
-        r_pos = r_pos - 1;
-        c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos - 1][c_pos + 1] == object_num && colour_array[r_pos - 1][c_pos + 1] != 1){
-        r_pos = r_pos - 1;
-        c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos + 1][c_pos - 1] == object_num && colour_array[r_pos + 1][c_pos - 1] != 1){
-        r_pos = r_pos + 1;
-        c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos + 1][c_pos] == object_num && colour_array[r_pos + 1][c_pos] != 1){
-        r_pos = r_pos + 1;
-        c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    else if (colour_array[r_pos][c_pos + 1] == object_num && colour_array[r_pos][c_pos + 1] != 1){
-        r_pos = r_pos;
-        c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
-        return 0;
-    }
-    return 0;
-}
-
 int find_random(int i){
     for (int r = r_pos - 1; r <= r_pos + 1; r++){
         for (int c = c_pos - 1; c <= c_pos + 1; c++){
@@ -299,6 +260,17 @@ int find_random(int i){
                 r_pos = r;
                 c_pos = c;
                 route[r_pos][c_pos] = i;
+                if (c_pos * (4000/128) - 200 <= 200 ||  c_pos * (4000/128) - 200 >= 3800) {
+                    return 0;
+                }
+                else if(r_pos * (4000/128) - 200 <= 200 || r_pos * (4000/128) - 200 >= 3800) {
+                    return 0;
+                }
+                world_route[i].y = c_pos * (4000/128) - 200;
+                world_route[i].x = r_pos * (4000/128) - 200;
+                printf("x: %d, y: %d\n", world_route[i].x, world_route[i].y);
+                world_route[i].count = i;
+                counter = i;
                 return 0;
             }
         }
@@ -326,17 +298,100 @@ void findRoute(){
 }
 
 
+int convertRouteToWorld() {
+    // int fuck_count = 2;
+    // while(world_route.count[fuck_count] != 0]) {
+    //     if(world_route.x[fuck_count] <= 200 || world_route.x[fuck_count] >= 3800) continue;
+    //     else if(world_route.y[fuck_count] * (4000/128) - 200 <= 200 || world_route.y[fuck_count] * (4000/128) - 200 >= 3800) continue;
+    //     world_route.x[fuck_count] = world_route.x[fuck_count] * (4000/128) - 200;
+    //     world_route.y[fuck_count] = world_route.y[fuck_count] * (4000/128) - 200;
+    //     fuck_count++;
+    // }
+    // printf("fuck_count: %d\n", fuck_count);
+    // return fuck_count;
+    int iterations = 2;
+    while(1) {
+        printf("x: %d\ty:%d\n",world_route[iterations].x, world_route[iterations].y);
+        if(!(world_route[iterations].count < world_route[iterations+1].count)) {
+            return iterations;
+        }
+        iterations++;
+    }
+
+}
+
+void driveFuckBot() {
+    int iter = 2;
+    int left = 0;
+    int right = 0;
+    int count_drive = counter;
+    double angle_diff = 0.0;
+    double dist_diff = 10;
+    while(count_drive >= 2) {
+        printf("iter: %d\n", count_drive);
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        angle_diff = ((atan2(world_route[count_drive].y - y_pos, world_route[count_drive].x - x_pos) * 180) / PI) - phi;
+        while(!(angle_diff < 2 && angle_diff > -2)) {
+            if(angle_diff < 0) VWTurn(-90,(int)(TURN_SPEED*(1+-1*angle_diff/20)));
+            else if(angle_diff > 0) VWTurn(90,(int)(TURN_SPEED*(1+angle_diff/20)));
+            VWGetPosition(&x_pos, &y_pos, &phi);
+            angle_diff = ((atan2(world_route[count_drive].y - y_pos, world_route[count_drive].x - x_pos) * 180) / PI) - phi;
+            printf("Turn Speed: %d\tAngle: %f\tDistance:%f\tIter: %d\t x: %d\t y: %d\r", (int)(TURN_SPEED*(1+angle_diff/20)),angle_diff, dist_diff, count_drive, world_route[count_drive].x, world_route[count_drive].y);
+            fflush(stdout);
+        }
+        VWTurn(0,0);
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        dist_diff = sqrt(pow((world_route[count_drive].x - x_pos),2) + pow((world_route[count_drive].y - y_pos),2));
+        printf("Angle: %f\tDistance:%f\tIter: %d\t x: %d\t y: %d\n", angle_diff, dist_diff, count_drive, world_route[count_drive].x, world_route[count_drive].y);
+        fflush(stdout);
+        left = PSDGet(2);
+        right = PSDGet(3);
+        if(left <= right) {
+            printf("Closer to left\n");
+            if(left < 200){
+                VWCurve(dist_diff, ((200 - left)) +1, 200);
+                printf("Too close LEFT\tCurving: %d\n", ((200 - left)/2));
+                VWWait();
+            }
+            else VWStraight(dist_diff, 200);
+            VWWait();
+        }
+
+        else if(left > right) {
+            printf("Closer to right\n");
+            if(right < 200) {
+                VWCurve(dist_diff, -1*(((200 - right)) +1), 200);
+                printf("Too close RIGHT\tCurving: %d\n", -1*((200 - right)/2));
+                VWWait();
+            }
+            else VWStraight(dist_diff, 200);
+            VWWait();
+
+        }
+        else {
+            VWStraight(dist_diff, 200);
+            VWWait();
+        }
+        if(PSDGet(1) < 80) {
+            VWStraight(-100,100);
+            VWWait();
+        }
+        count_drive -= 3;
+    }
+}
+
+
 int main(){
     // setting robot top left
-    SIMSetRobot(0,200,3800,1, 0);
-
+    SIMSetRobot(0,200,3800,1, 180);
+    VWStraight(0,0);
     // getting current pos
     VWSetPosition(x_pos, y_pos, phi);
     VWGetPosition(&x_pos, &y_pos, &phi);
 
     // rotating into right angle
-    VWTurn(-135, speed);
-    VWWait();
+    //VWTurn(-135, speed);
+    //VWWait();
 
 	// reading in image file
     read_pbm(filename, &img);
@@ -362,10 +417,13 @@ int main(){
 
 
     findRoute();
-
+    //printf("Count: %d\n",convertRouteToWorld());
+    printf("COUNTER =  %d\n", counter);
+    driveFuckBot();
 
     printf("Press enter to end program\n");
     getchar(); 
 
     return 0;
 }
+
