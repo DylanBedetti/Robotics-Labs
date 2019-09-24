@@ -5,14 +5,20 @@
 #include <math.h>
 #include <stdbool.h>
 
+#define PI acos(-1)
+
+typedef struct World_Route {
+    int x;
+    int y;
+} World_Route;
 
 int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, YELLOW, CYAN, TEAL, MAGENTA, PURPLE, MAROON, NAVY, OLIVE};
 BYTE* img;
-BYTE img2D[128][128]; 
+BYTE img2D[128][128];
 BYTE img2D_temp[128][128] = {0};
 int colour_array[128][128] = {0};
-int colour_array_temp[128][128] = {0};
 int route[128][128] = {0};
+World_Route world_route[300];
 char* filename = "u.pbm";
 int object_num = 1;
 int x_pos, y_pos, phi = 0;
@@ -20,9 +26,11 @@ int speed = 50;
 int r_pos = 127;
 int c_pos = 127;
 
+
+
 void vectorToMatrix(){
     // chaning img vector to img2D matrix
-    for(int i = 0; i <128 ;i++){ 
+    for(int i = 0; i <128 ;i++){
         for(int j = 0; j <128 ; j++){
             img2D[i][j]= img[(i*128+j)];
         }
@@ -35,7 +43,7 @@ void printOutArray(){
         for(int j = 0; j < 128; j++){
             printf("%d", img2D[i][j]);
         }
-    printf("\n");
+        printf("\n");
     }
 }
 
@@ -45,23 +53,21 @@ void printRoute(){
         for(int j = 0; j < 128; j++){
             printf("%d", route[i][j]);
         }
-    printf("\n");
-    }
-}
-
-void printOutColourArray(){
-    // printing to LCD 
-    for(int r = 0; r < 128; r++){
-        for(int c = 0; c < 128; c++){
-            LCDPixel(c, r, colours[colour_array[r][c]]);
-            printf("%d", colour_array[r][c]);
-        }
         printf("\n");
     }
 }
 
+void printOutColourArray(){
+    // printing to LCD
+    for(int r = 0; r < 128; r++){
+        for(int c = 0; c < 128; c++){
+            LCDPixel(c, r, colours[colour_array[r][c]]);
+        }
+    }
+}
+
 void printOutColourVeroni(){
-    // printing to LCD 
+    // printing to LCD
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
             if (colour_array[r][c] == object_num){
@@ -95,8 +101,6 @@ void copyArrays(int k){
             if (k == 1){
                 img2D_temp[i][j] = img2D[i][j];
             } else{
-                // colour_array_temp[i][j] = colour_array[i][j];
-                // colour_array[i][j] = colour_array_temp[i][j];
                 img2D[i][j] = img2D_temp[i][j];
             }
 
@@ -123,21 +127,22 @@ int eightNearest(int r, int c){
 int eightveroni(int r, int c){
     int c_1 = 0;
     for (int i = -1; i <= 1; i++){
-            for (int j = -1; j <= 1; j++){
-                if (i != 0 && j != 0){
-                    if (colour_array[r + i][c + j] != 0 && colour_array[r + i][c + j] != object_num){
-                        if (c_1 == 0){
-                            c_1 = colour_array[r + i][c + j];
-                        } else if (c_1 != colour_array[r + i][c + j]){
-                            colour_array[r][c] = object_num;
-                            return 0;
-                        }
+        for (int j = -1; j <= 1; j++){
+            if (i != 0 && j != 0){
+                if (colour_array[r + i][c + j] != 0){
+                    if (c_1 == 0){
+                        c_1 = colour_array[r + i][c + j];
+                    } else if (c_1 != colour_array[r + i][c + j]){
+                        colour_array[r][c] = object_num;
+                        return 0;
                     }
                 }
             }
         }
+    }
     return 0;
 }
+
 
 void brushfire(){
     printf("doing brushfire!\n");
@@ -175,7 +180,7 @@ void brushfire(){
         colour_array[i][0] = object_num;
     }
     object_num++;
-    
+
     for (int i = 0; i < 128; i++){
         colour_array[0][i] = object_num;
     }
@@ -186,7 +191,7 @@ void brushfire(){
     }
     object_num++;
 
-        for (int i = 0; i < 128; i++){
+    for (int i = 0; i < 128; i++){
         colour_array[127][i] = object_num;
     }
     object_num++;
@@ -203,12 +208,6 @@ void brushfire(){
     // img2D_temp = img2D;
     copyArrays(1);
 
-    for(int i = 0; i < 128; i++){
-        for(int j = 0; j < 128; j++){
-            colour_array_temp[i][j] = colour_array[i][j];
-        }
-    }
-
     printf("Starting numbering\n");
     printf("Object num: %d\n", object_num);
     // looping through
@@ -222,57 +221,59 @@ void brushfire(){
                     eightveroni(r, c);
                 }
             }
-        } 
+        }
         contains_zeros = check_zeros();
 
+        // img2D = img2D_temp;
         copyArrays(0);
         // printOutArray(); //terminal
-        printOutColourArray(); //LCD
-        getchar(); // wait for next loop
+        // printOutColourArray(); //LCD
+        // getchar(); // wait for next loop
     }
 }
 
-int find_closest(){
+int find_closest(int i){
+    printf("i: %d\r", i);
     if (colour_array[r_pos][c_pos - 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos - 1] == object_num){
+    if (colour_array[r_pos - 1][c_pos - 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos] == object_num){
+    if (colour_array[r_pos - 1][c_pos] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos - 1][c_pos + 1] == object_num){
+    if (colour_array[r_pos - 1][c_pos + 1] == object_num){
         r_pos = r_pos - 1;
         c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos - 1] == object_num){
+    if (colour_array[r_pos + 1][c_pos - 1] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos - 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos + 1][c_pos] == object_num){
+    if (colour_array[r_pos + 1][c_pos] == object_num){
         r_pos = r_pos + 1;
         c_pos = c_pos;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
-    else if (colour_array[r_pos][c_pos + 1] == object_num){
+    if (colour_array[r_pos][c_pos + 1] == object_num){
         r_pos = r_pos;
         c_pos = c_pos + 1;
-        route[r_pos][c_pos] = 1;
+        route[r_pos][c_pos] = i;
         return 0;
     }
     return 0;
@@ -282,40 +283,148 @@ void findRoute(){
     printf("\n\n FINDING ROUTE\n\n");
     // function to find a route from bottom right to top left
     // at each pixel, choose the one that will get you closes to the top left
-    route[127][127] = 1;
+    int i = 1;
+    route[127][127] = i;
     while(route[0][0] == 0){
-        find_closest();
+        i++;
+        find_closest(i);
         // printf("ROUTE\n");
-        printRoute();
+        // printRoute();
         // printf("VERONI\n");
         // printOutColourVeroni();
-        getchar();
+        // getchar();
     }
     printRoute();
 }
 
+int convertRouteToWorld() {
+    int count = 0;
+    for(int j = 0; j < 128; j++) {
+        for(int i = 0; i < 128; i++) {
+            if (route[i][j] != 0) {
+                if((4000/128) * i <= 200 || (4000/128) * i >= 3800) continue;
+                else if((4000/128) * j <= 200 || (4000/128) * j >= 3800) continue;
+                world_route[count].x = (4000/128) * i - 200;
+                world_route[count].y = (4000/128) * j - 200;
+                printf("x:%d y:%d\n", world_route[count].x, world_route[count].y);
+                count++;
+            }
+        }
+    }
+    printf("Count: %d\n", count);
+    return count;
+}
+
+
+void driveFuckBotLoop(int count) {
+    int iter = 0;
+    double angle_diff = 0.0;
+    double dist_diff = 10;
+    while(iter < count) {
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        angle_diff = ((atan2(world_route[iter].y - y_pos, world_route[iter].x - x_pos) * 180) / PI) - phi;
+
+        while(!(angle_diff < 2 && angle_diff > -2)) {
+            if(angle_diff < 0) VWTurn(-90,20);
+            else if(angle_diff > 0) VWTurn(90,20);
+            VWGetPosition(&x_pos, &y_pos, &phi);
+            angle_diff = ((atan2(world_route[iter].y - y_pos, world_route[iter].x - x_pos) * 180) / PI) - phi;
+            printf("Angle: %f\r", angle_diff);
+        }
+        VWTurn(0,0);
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        dist_diff = sqrt(pow((world_route[iter].x - x_pos),2) + pow((world_route[iter].y - y_pos),2));
+        printf("Angle: %f\tDistance:%f\r", angle_diff, dist_diff);
+        VWStraight(dist_diff,50);
+        VWWait();
+        iter++;
+    }
+}
+
+
+void driveFuckBot(int count) {
+    int iter = 0;
+    int left = 0;
+    int right = 0;
+    double angle_diff = 0.0;
+    double dist_diff = 10;
+    while(iter < count) {
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        angle_diff = ((atan2(world_route[iter].y - y_pos, world_route[iter].x - x_pos) * 180) / PI) - phi;
+        while(!(angle_diff < 1 && angle_diff > -1)) {
+            if(angle_diff < 0) VWTurn(-90,20);
+            else if(angle_diff > 0) VWTurn(90,20);
+                VWGetPosition(&x_pos, &y_pos, &phi);
+                angle_diff = ((atan2(world_route[iter].y - y_pos, world_route[iter].x - x_pos) * 180) / PI) - phi;
+                printf("Angle: %f\tDistance:%f\tIter: %d\t x: %d\t y: %d\r", angle_diff, dist_diff, iter, world_route[iter].x, world_route[iter].y);
+                fflush(stdout);
+        }
+        VWTurn(0,0);
+        VWGetPosition(&x_pos, &y_pos, &phi);
+        dist_diff = sqrt(pow((world_route[iter].x - x_pos),2) + pow((world_route[iter].y - y_pos),2));
+        printf("Angle: %f\tDistance:%f\tIter: %d\t x: %d\t y: %d\n", angle_diff, dist_diff, iter, world_route[iter].x, world_route[iter].y);
+        fflush(stdout);
+        left = PSDGet(2);
+        right = PSDGet(3);
+        if(left <= right) {
+            printf("Closer to left\n");
+            if(left < 200){
+                VWCurve(dist_diff, ((200 - left)) +1, 200);
+                printf("Too close LEFT\tCurving: %d\n", ((200 - left)/2));
+                VWWait();
+            }
+            else VWStraight(dist_diff, 200);
+            VWWait();
+        }
+
+        else if(left > right) {
+            printf("Closer to right\n");
+            if(right < 200) {
+                VWCurve(dist_diff, -1*(((200 - right)) +1), 200);
+                printf("Too close RIGHT\tCurving: %d\n", -1*((200 - right)/2));
+                VWWait();
+            }
+            else VWStraight(dist_diff, 200);
+            VWWait();
+
+        }
+        else {
+            VWStraight(dist_diff, 200);
+            VWWait();
+        }
+        if(PSDGet(1) < 80) {
+            VWStraight(-100,100);
+            VWWait();
+        }
+        iter++;
+    }
+}
+
+
 
 int main(){
-    // // setting robot top left
-    // SIMSetRobot(0,200,3800,1, 0);
+    int count = 0;
+    // setting robot top left
+    SIMSetRobot(0,200,3800,1, 90);
+    // getting current pos
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
+    VWStraight(0,0);
+    printf("x: %d, y: %d, phi: %d\n", x_pos, y_pos, phi);
 
-    // // getting current pos
-    // VWSetPosition(x_pos, y_pos, phi);
-    // VWGetPosition(&x_pos, &y_pos, &phi);
+    // rotating into right angle
+    //VWTurn(360, speed);
+    //VWWait();
 
-    // // rotating into right angle
-    // VWTurn(-135, speed);
-    // VWWait();
-
-	// reading in image file
+    // reading in image file
     read_pbm(filename, &img);
-	printf("starting program!\n\n");
+    printf("starting program!\n\n");
 
-	// starting LCD
+    // starting LCD
     LCDImageStart(0, 0, 128, 128);
     LCDImageBinary(img);
     LCDSetPrintf(15, 0, "PRESS ENTER!");
-    
+
     // reading image file to matrix
     vectorToMatrix();
 
@@ -331,10 +440,10 @@ int main(){
 
 
     findRoute();
-
-
+    count = convertRouteToWorld();
+    driveFuckBot(count);
     printf("Press enter to end program\n");
-    getchar(); 
+    getchar();
 
     return 0;
 }
