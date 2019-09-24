@@ -59,9 +59,9 @@ void printOutColourArray(){
     for(int r = 0; r < 128; r++){
         for(int c = 0; c < 128; c++){
             LCDPixel(c, r, colours[colour_array[r][c]]);
-            printf("%d", colour_array[r][c]);
+            // printf("%d", colour_array[r][c]);
         }
-        printf("\n");
+        // printf("\n");
     }
 }
 
@@ -144,33 +144,45 @@ int eightveroni(int r, int c){
     return 0;
 }
 
-
-
+void virus(int r, int c){
+    for (int i = 0; i <= 1; i++){
+        for (int j = 0; j <= 1; j++){
+            if (i != 0 && j != 0){
+                if (img2D[r + i][c + j] == 1 && colour_array[r + i][c + j] == 0){
+                    colour_array[r + i][c + j] = object_num;
+                    // printf("virus\n");
+                    // getchar();
+                    virus(r + i, c + j);
+                }
+            }
+        }
+    }
+}
 void brushfire(){
     printf("doing brushfire!\n");
     printf("lablling objects\n");
+    getchar();
     //label each object independently and assigning edges to 2
     // currently will only work for square shapes!
-    for (int c = 128; c >= 0; c--){
-        for (int r = 127; r >= 0; r--){
-            if (img2D[r][c] == 1){
-                if(colour_array[r - 1][c + 1] != 0){
-                    colour_array[r][c] = colour_array[r - 1][c + 1];
-
-                } else if(colour_array[r][c + 1] != 0){
-                    colour_array[r][c] = colour_array[r][c + 1];
-
-                } else if(colour_array[r + 1][c + 1] != 0){
-                    colour_array[r][c] = colour_array[r + 1][c + 1];
-
-                }else if(colour_array[r + 1][c] != 0){
-                    colour_array[r][c] = colour_array[r + 1][c];
-                }
-                else{
-                    colour_array[r][c] = object_num;
-                    object_num++;
-                }
-            }
+    for (int r = 1; r < 128; r++){
+        for (int c = 1; c < 128; c++){
+            if (img2D[r][c] == 1 && colour_array[r][c] == 0){
+                colour_array[r][c] = object_num;
+                virus(r, c); 
+                printf("press enter\n");
+                printOutColourArray();
+                // getchar();
+            } else if (img2D[r][c] == 1 && colour_array[r - 1][c] != 0){
+                virus(r, c); 
+            } 
+            // else {
+            //     object_num++;
+            //     virus(r, c); 
+            // }
+            // else{
+            //     colour_array[r][c] = object_num;
+            //     object_num++;
+            // }
             // setting edges to 1
             if (r == 0 || r == 127 || c == 0 || c == 127){
                 img2D[r][c] = 1;
@@ -286,7 +298,7 @@ void findRoute(){
 void drive(){
     int new_x_pos = 0;
     int new_y_pos = 0;
-    for (int i = 410; i > 10; i -= 3){
+    for (int i = 410; i > 10; i -= 5){
         for (int r = 0; r < 127; r++){
             for (int c = 0; c < 127; c++){
                 if (route[r][c] == i){
@@ -345,16 +357,16 @@ int main(){
     //brushfire functon
     brushfire();
 
-    printf("see only veroni!\n");
-    getchar();
-    printOutColourVeroni();
+    // printf("see only veroni!\n");
+    // getchar();
+    // printOutColourVeroni();
 
     // need to add drive
     // map is 4000, 4000. Therefore GetPos is equivalent to (pos/4000)*128
 
-    findRoute();
+    // findRoute();
 
-    drive();
+    // drive();
 
     printf("Press enter to end program\n");
     getchar(); 
