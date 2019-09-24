@@ -1,0 +1,364 @@
+#include "eyebot.h"
+#include "image.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+#define TURN_SPEED 10
+#define PI acos(-1)
+
+
+int colours[] = {0 ,RED, GREEN, BLUE, WHITE, GRAY, ORANGE, SILVER, LIGHTGRAY, DARKGRAY, YELLOW, CYAN, TEAL, MAGENTA, PURPLE, MAROON, NAVY, OLIVE};
+BYTE* img;
+BYTE img2D[128][128]; 
+BYTE img2D_temp[128][128] = {0};
+int colour_array[128][128] = {0};
+int colour_array_temp[128][128] = {0};
+int route[128][128] = {0};
+char* filename = "u.pbm";
+int object_num = 1;
+int x_pos, y_pos, phi = 0;
+int speed = 50;
+int r_pos = 127;
+int c_pos = 127;
+float angle_diff;
+float dist_diff;
+int speeed = 100;
+
+void vectorToMatrix(){
+    // chaning img vector to img2D matrix
+    for(int i = 0; i <128 ;i++){ 
+        for(int j = 0; j <128 ; j++){
+            img2D[i][j]= img[(i*128+j)];
+        }
+    }
+}
+
+void printOutArray(){
+    // terminal print of array
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            printf("%d", img2D[i][j]);
+        }
+    printf("\n");
+    }
+}
+
+void printRoute(){
+    // terminal print of array
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            printf("%d", route[i][j]);
+        }
+    printf("\n");
+    }
+}
+
+void printOutColourArray(){
+    // printing to LCD 
+    for(int r = 0; r < 128; r++){
+        for(int c = 0; c < 128; c++){
+            LCDPixel(c, r, colours[colour_array[r][c]]);
+            printf("%d", colour_array[r][c]);
+        }
+        printf("\n");
+    }
+}
+
+void printOutColourVeroni(){
+    // printing to LCD 
+    for(int r = 0; r < 128; r++){
+        for(int c = 0; c < 128; c++){
+            if (colour_array[r][c] == object_num){
+                LCDPixel(c, r, colours[colour_array[r][c]]);
+                printf("1");
+            } else {
+                LCDPixel(c, r, 0);
+                printf("0");
+            }
+        }
+        printf("\n");
+    }
+}
+
+int check_zeros(){
+    // checking if zeros left in img2D
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            if (img2D[i][j] == 0){
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+void copyArrays(int k){
+    // function for copying arrays between eachother
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            if (k == 1){
+                img2D_temp[i][j] = img2D[i][j];
+            } else{
+                // colour_array_temp[i][j] = colour_array[i][j];
+                // colour_array[i][j] = colour_array_temp[i][j];
+                img2D[i][j] = img2D_temp[i][j];
+            }
+
+        }
+    }
+}
+
+int eightNearest(int r, int c){
+    if (img2D[r][c] == 0){
+        for (int i = -1; i <= 1; i++){
+            for (int j = -1; j <= 1; j++){
+                if (i != 0 && j != 0){
+                    if (img2D[r + i][c + j] != 0){
+                        colour_array[r][c] = colour_array[r + i][c + j];
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+int eightveroni(int r, int c){
+    int c_1 = 0;
+    for (int i = -1; i <= 1; i++){
+            for (int j = -1; j <= 1; j++){
+                if (i != 0 && j != 0){
+                    if (colour_array[r + i][c + j] != 0 && colour_array[r + i][c + j] != object_num){
+                        if (c_1 == 0){
+                            c_1 = colour_array[r + i][c + j];
+                        } else if (c_1 != colour_array[r + i][c + j]){
+                            colour_array[r][c] = object_num;
+                            return 0;
+                        }
+                    }
+                }
+            }
+        }
+    return 0;
+}
+
+
+
+void brushfire(){
+    printf("doing brushfire!\n");
+    printf("lablling objects\n");
+    //label each object independently and assigning edges to 2
+    // currently will only work for square shapes!
+    for (int c = 128; c >= 0; c--){
+        for (int r = 127; r >= 0; r--){
+            if (img2D[r][c] == 1){
+                if(colour_array[r - 1][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r - 1][c + 1];
+
+                } else if(colour_array[r][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r][c + 1];
+
+                } else if(colour_array[r + 1][c + 1] != 0){
+                    colour_array[r][c] = colour_array[r + 1][c + 1];
+
+                }else if(colour_array[r + 1][c] != 0){
+                    colour_array[r][c] = colour_array[r + 1][c];
+                }
+                else{
+                    colour_array[r][c] = object_num;
+                    object_num++;
+                }
+            }
+            // setting edges to 1
+            if (r == 0 || r == 127 || c == 0 || c == 127){
+                img2D[r][c] = 1;
+            }
+        }
+    }
+
+    for (int i = 0; i < 128; i++){
+        colour_array[i][0] = object_num;
+    }
+    object_num++;
+    
+    for (int i = 0; i < 128; i++){
+        colour_array[0][i] = object_num;
+    }
+    object_num++;
+
+    for (int i = 0; i < 128; i++){
+        colour_array[i][127] = object_num;
+    }
+    object_num++;
+
+        for (int i = 0; i < 128; i++){
+        colour_array[127][i] = object_num;
+    }
+    object_num++;
+
+    // making corners veroni
+    colour_array[0][0] = object_num;
+    colour_array[0][127] = object_num;
+    colour_array[127][0] = object_num;
+    colour_array[127][127] = object_num;
+
+    printOutArray();
+    getchar();
+
+    // img2D_temp = img2D;
+    copyArrays(1);
+
+    for(int i = 0; i < 128; i++){
+        for(int j = 0; j < 128; j++){
+            colour_array_temp[i][j] = colour_array[i][j];
+        }
+    }
+
+    printf("Starting numbering\n");
+    printf("Object num: %d\n", object_num);
+    // looping through
+    int contains_zeros = 0;
+    for (int i = 2; contains_zeros == 0; i++){
+        for (int r = 1; r < 127; r++){
+            for (int c = 1; c < 127; c++){
+                // 8-nearest neighbour
+                if (eightNearest(r, c)){
+                    img2D_temp[r][c] = i;
+                    eightveroni(r, c);
+                }
+            }
+        } 
+        contains_zeros = check_zeros();
+
+        copyArrays(0);
+        // printOutArray(); //terminal
+        // printOutColourArray(); //LCD
+        // getchar(); // wait for next loop
+    }
+    for (int r = 1; r < 127; r++){
+        for (int c = 1; c < 127; c++){
+            if(colour_array[r + 1][c] == object_num && colour_array[r - 1][c] == object_num){
+                colour_array[r][c] = object_num;
+            } else if (colour_array[r][c + 1] == object_num && colour_array[r][c + 1] == object_num){
+                colour_array[r][c] = object_num;
+            }
+        }
+    }
+    printOutColourArray();
+}
+
+int find_random(int i){
+    for (int r = r_pos - 1; r <= r_pos + 1; r++){
+        for (int c = c_pos - 1; c <= c_pos + 1; c++){
+            // printf("r: %d, c: %d\n", r, c);
+            if (colour_array[r][c] == object_num && route[r][c] == 0){
+                r_pos = r;
+                c_pos = c;
+                route[r_pos][c_pos] = i;
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+void findRoute(){
+    printf("\n\n FINDING ROUTE\n\n");
+    // function to find a route from bottom right to top left
+    // at each pixel, choose the one that will get you closes to the top left
+    int i = 1;
+    route[127][127] = i;
+    while(route[0][0] == 0){
+        i++;
+        // find_closest();
+        find_random(i);
+        // printf("ROUTE\n");
+        // printRoute();
+        // printf("VERONI\n");
+        // printOutColourVeroni();
+        // getchar();
+    }
+    // printRoute();
+}
+
+void drive(){
+    int new_x_pos = 0;
+    int new_y_pos = 0;
+    for (int i = 410; i > 10; i -= 3){
+        for (int r = 0; r < 127; r++){
+            for (int c = 0; c < 127; c++){
+                if (route[r][c] == i){
+                    new_x_pos = r * (4000/128) - 200;
+                    new_y_pos = c * (4000/128) - 200;
+                    // drive
+
+                    VWGetPosition(&x_pos, &y_pos, &phi);
+                    angle_diff = atan2(new_y_pos - y_pos, new_x_pos - x_pos)*180/PI - phi;
+
+                    if (angle_diff > 180){angle_diff = angle_diff - 360;}
+                    else if (angle_diff < -180){angle_diff = angle_diff + 360;}
+
+                    dist_diff = sqrt((y_pos - new_y_pos)*(y_pos - new_y_pos) + (x_pos - new_x_pos)*(x_pos - new_x_pos) );
+
+
+                    printf("route: %d, r: %d, c: %d, new_x_pos: %d, new_y_pos: %d, angle_diff: %f, dist_diff: %f", route[r][c], r, c, new_x_pos, new_y_pos, angle_diff, dist_diff);
+                    // getchar();
+
+                    VWTurn(angle_diff, speeed);
+                    VWWait();
+
+                    VWStraight(dist_diff, speeed);
+                    VWWait();
+
+                }
+            }
+        }
+    }
+}
+
+int main(){
+    // setting robot top left
+    SIMSetRobot(0,200,3800,1, 180);
+    VWStraight(0,0);
+    // getting current pos
+    VWSetPosition(x_pos, y_pos, phi);
+    VWGetPosition(&x_pos, &y_pos, &phi);
+
+    // rotating into right angle
+    //VWTurn(-135, speed);
+    //VWWait();
+
+	// reading in image file
+    read_pbm(filename, &img);
+	printf("starting program!\n\n");
+
+	// starting LCD
+    LCDImageStart(0, 0, 128, 128);
+    LCDImageBinary(img);
+    LCDSetPrintf(15, 0, "PRESS ENTER!");
+    
+    // reading image file to matrix
+    vectorToMatrix();
+
+    //brushfire functon
+    brushfire();
+
+    printf("see only veroni!\n");
+    getchar();
+    printOutColourVeroni();
+
+    // need to add drive
+    // map is 4000, 4000. Therefore GetPos is equivalent to (pos/4000)*128
+
+    findRoute();
+
+    drive();
+
+    printf("Press enter to end program\n");
+    getchar(); 
+
+    return 0;
+}
+
