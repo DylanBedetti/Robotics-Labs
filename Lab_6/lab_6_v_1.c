@@ -26,21 +26,40 @@ void init() {
 }
 
 void readFile() {
+    int count_t = 0;
+    int count_l = 0;
     FILE* file = fopen(MY_FILE, "r");
     char line[BUFFSIZE];
-    
+
     while (fgets(line, sizeof(line), file)) {//for each line
         char *token;
+        // printf("%s", line);
+
         token = strtok(line, " ");
+        count_t = 0;
         while (token != NULL) {//for each token
-                token = strtok(NULL, " ");
+            // printf("%s\n",token);
+            if (count_t == 0){
+                nodes[count_l].x = atoi(token); printf("line: %d, token: %d, x: %s\n",count_l, count_t, token);
+            }
+            if (count_t == 1){
+                nodes[count_l].y = atoi(token); printf("line: %d, token: %d, y: %s\n",count_l, count_t, token);
+            }
+
+            count_t++;
+            token = strtok(NULL, " ");
         }
+        count_l++;
     }
     fclose(file);
 }
 
 int main(){
 
+    printf("starting Lab 6!\n");
+    // init();
+
+    readFile();
 
     return 0;
 }
